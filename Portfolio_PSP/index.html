@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xinhao Xia Xia — Game Designer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="bg-base"></div>
+<div id="bg"></div>
+<div id="loading">
+  <div class="load-logo">PSP</div>
+  <div class="load-sub">loading portfolio</div>
+  <div class="load-bar-wrap"><div class="load-bar"></div></div>
+</div>
+<div id="app">
+  <div id="view-carousel">
+    <header id="header">
+      <div class="header-name">Xinhao Xia Xia</div>
+      <div class="header-title">GAME DESIGNER</div>
+      <div class="header-sub">PORTFOLIO - 2026</div>
+    </header>
+    <div id="label-select">— selecciona un juego —</div>
+
+    <div id="carousel-outer">
+      <div id="carousel-track"></div>
+    </div>
+
+    <div id="game-name-display"></div>
+    <div id="game-genre-display"></div>
+
+    <div id="bottom-ui">
+      <div id="carousel-nav">
+        <button class="arr-btn" id="arr-left">&#8592;</button>
+        <div id="dots-nav"></div>
+        <button class="arr-btn" id="arr-right">&#8594;</button>
+      </div>
+      <button id="btn-insert">INSERTAR CARTUCHO</button>
+    </div>
+  </div>
+
+  <div id="view-psp">
+    <canvas id="psp-canvas"></canvas>
+    <div id="psp-screen">
+      <div id="screen-idle">
+        <div class="screen-psp-logo">PSP</div>
+        <div class="screen-psp-sub">PORTFOLIO</div>
+      </div>
+      <div id="screen-game">
+        <div class="sg-topbar">
+          <span class="sg-time" id="sg-time">00:00</span>
+          <span class="sg-console">PlayStation Portable</span>
+          <span class="sg-battery" id="sg-battery">■■■■□ 80%</span>
+        </div>
+        <div class="sg-body">
+          <div class="sg-bg" id="sg-bg"></div>
+          <div class="sg-shine"></div>
+          <div class="sg-content">
+            <div class="sg-title" id="sg-title"></div>
+            <div class="sg-genre" id="sg-genre"></div>
+            <div class="sg-hr"></div>
+            <div class="sg-desc"  id="sg-desc"></div>
+            <div class="sg-tags"  id="sg-tags"></div>
+            <div class="sg-year"  id="sg-year"></div>
+          </div>
+        </div>
+        <div class="screen-vignette"></div>
+        <div class="screen-glare"></div>
+        <div class="screen-scanlines"></div>
+      </div>
+    </div>
+  </div>
+
+  <button id="btn-back">VOLVER AL MENÚ</button>
+</div>
+
+<script src="three.min.js"></script>
+<script src="GLTFLoader.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
