@@ -137,6 +137,17 @@ body {
 }
 #carousel-track{display:flex;align-items:center;padding:50px 0;will-change:transform}
 
+.umd-item {
+  position: relative;
+  width: 280px !important;
+  height: 280px !important;
+  border-radius: 6px;
+  overflow: hidden;
+  background: transparent;
+  
+  /* NUEVO: Espacio a los lados de cada disco (ajusta este número si quieres más o menos espacio) */
+  margin: 0 50px; 
+}
 .umd-item{
   flex-shrink:0;width:280px;
   display:flex;flex-direction:column;align-items:center;

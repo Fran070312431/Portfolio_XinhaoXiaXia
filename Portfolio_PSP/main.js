@@ -33,9 +33,10 @@ const INSERT_ANIM_SCALE  = 60;          // factor de escala del modelo animado
 const INSERT_ANIM_OFFSET = [0, 0, 0];  // desplazamiento x,y,z tras escalar
 const INSERT_ANIM_TIMESCALE = 0.9;     // velocidad de la animación (1 = normal)
 const INSERT_ANIM_HOLD_MS   = 1000;    // pausa tras la animación antes de cortar a la PSP
+const PSP_BOOT_TRIGGER_MS   = 400;     // espera tras mostrar la vista PSP antes de arrancar la pantalla (antes 900)
 
 /* ═══ CONSTANTES ═══ */
-const ITEM_W      = 280;   // igual que .umd-item width en CSS
+const ITEM_W      = 380;   // igual que .umd-item width en CSS
 const LERP_SPEED  = 0.10;  // suavidad del scroll del carousel
 
 /* ═══ ESTADO ═══ */
@@ -355,7 +356,6 @@ function buildDots() {
     c.appendChild(b);
   });
 }
-
 function updateDots() {
   document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===currentIdx));
 }
@@ -364,9 +364,10 @@ function updateDots() {
 function updateScales() {
   umdScenes.forEach((s, i) => {
     const dist = Math.abs(i - currentIdx);
-    // Ajuste: Central (1.18), Laterales (0.9, un poco más grandes que 0.78), Resto (0)
-    const targetScale   = dist === 0 ? 1.18 : dist === 1 ? 0.9 : 0; 
-    const targetOpacity = dist === 0 ? 1    : dist === 1 ? 0.7 : 0; // Ajustamos opacidad también
+    // Solo se ven 3 discos: el central y un vecino a cada lado.
+    // A partir de dist 2 quedan invisibles (igual que en el diseño).
+    const targetScale   = dist===0 ? 1.18 : dist===1 ? 1 : 0.9;
+    const targetOpacity = dist===0 ? 1    : dist===1 ? 0.9 : 0;
     s.targetScale   = targetScale;
     s.targetOpacity = targetOpacity;
   });
@@ -499,11 +500,15 @@ function startInsert() {
     setTimeout(() => {
       document.getElementById('view-carousel').classList.add('hiding');
       document.getElementById('view-psp').classList.add('visible');
+      // Este segundo delay solo deja que la transición CSS de
+      // #view-psp (que dura PSP_SLIDE_MS, ver style.css) se vea
+      // avanzada antes de arrancar la pantalla — no es una pausa
+      // "a propósito" como la de arriba, así que va más corto.
       setTimeout(() => {
         bootScreen(GAMES[currentIdx]);
         document.getElementById('btn-back').classList.add('visible');
         appState = 'psp';
-      }, 900);
+      }, PSP_BOOT_TRIGGER_MS);
     }, INSERT_ANIM_HOLD_MS);
   });
 }
