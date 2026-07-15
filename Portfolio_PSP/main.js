@@ -355,6 +355,7 @@ function buildDots() {
     c.appendChild(b);
   });
 }
+
 function updateDots() {
   document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===currentIdx));
 }
@@ -363,10 +364,9 @@ function updateDots() {
 function updateScales() {
   umdScenes.forEach((s, i) => {
     const dist = Math.abs(i - currentIdx);
-    // Solo se ven 3 discos: el central y un vecino a cada lado.
-    // A partir de dist 2 quedan invisibles (igual que en el diseño).
-    const targetScale   = dist===0 ? 1.18 : dist===1 ? 0.78 : 0.6;
-    const targetOpacity = dist===0 ? 1    : dist===1 ? 0.55 : 0;
+    // Ajuste: Central (1.18), Laterales (0.9, un poco más grandes que 0.78), Resto (0)
+    const targetScale   = dist === 0 ? 1.18 : dist === 1 ? 0.9 : 0; 
+    const targetOpacity = dist === 0 ? 1    : dist === 1 ? 0.7 : 0; // Ajustamos opacidad también
     s.targetScale   = targetScale;
     s.targetOpacity = targetOpacity;
   });

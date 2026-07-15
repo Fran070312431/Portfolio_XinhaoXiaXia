@@ -1,37 +1,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Abel&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--dark:#252525;--mid:#6a6258;--light:#9a9288;--dot:#a5a5a5;--retro:'Pixelify Sans',monospace;--ui:'Abel',sans-serif}
-html,body{width:100%;height:100%;overflow:hidden;-webkit-font-smoothing:antialiased}
-
-/* ── FONDO ÚNICO — igual en carousel y en PSP ── */
-#bg-base{
-  position:fixed;inset:0;z-index:0;
-  background:linear-gradient(180deg,#f8f4ec 0%,#c8c0b2 100%);
-}
-#bg{
-  position:fixed;inset:0;z-index:1;pointer-events:none;
-  background-image:radial-gradient(circle,var(--dot) 1.8px,transparent 1.8px);
-  background-size:22px 22px;
-  /* Puntos visibles en toda la parte superior, se desvanecen solo muy abajo */
-  mask-image:linear-gradient(180deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 40%,rgba(0,0,0,.4) 75%,rgba(0,0,0,0) 100%);
-  -webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 40%,rgba(0,0,0,.4) 75%,rgba(0,0,0,0) 100%);
-}
-/* ── Para usar TU PROPIA imagen de fondo (en vez del patrón de puntos
-   generado por CSS), sustituye el bloque de #bg de arriba por esto:
-
-#bg{
-  position:fixed;inset:0;z-index:1;pointer-events:none;
-  background-image:url('assets/tu-imagen-de-puntos.png');
-  background-repeat:repeat;      // se repite en mosaico
-  background-size:22px 22px;     // ajusta al tamaño real de tu imagen
-  mask-image:linear-gradient(180deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 40%,rgba(0,0,0,.4) 75%,rgba(0,0,0,0) 100%);
-  -webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 40%,rgba(0,0,0,.4) 75%,rgba(0,0,0,0) 100%);
+body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;  
+  background-color: #ffffff; /* Color de fondo base */
+  /* Imagen anclada arriba y a ancho completo */
+  background-image: url('Imagenes/Fondo.webp'); 
+  background-repeat: no-repeat;
+  background-size: 100% auto; /* Ajusta el ancho al 100%, altura proporcional */
+  background-position: center top; /* Pegada arriba y centrada horizontalmente */
 }
 
-   Pon el archivo en tu carpeta (p.ej. assets/) y ajusta la ruta.
-   Si tu imagen ya es un mosaico completo de pantalla (no un tile
-   pequeño que se repite), usa background-size:cover y quita
-   background-repeat en su lugar. */
+#bg-base, #bg {
+  display: none; 
+}
 
 #app{position:relative;z-index:2;width:100%;height:100vh;display:flex;flex-direction:column;align-items:center;overflow:hidden}
 
@@ -40,16 +24,112 @@ html,body{width:100%;height:100%;overflow:hidden;-webkit-font-smoothing:antialia
 #view-carousel.hiding{opacity:0;transform:translateY(-20px);pointer-events:none}
 
 /* Header — sin fondo, el fondo global es suficiente */
-#header{text-align:center;padding:26px 40px 10px;width:100%;z-index:10;background:transparent}
-.header-name {font-family:var(--retro);font-size:9px;letter-spacing:5px;color:var(--mid);margin-bottom:12px}
-.header-title{font-family:var(--retro);font-size:20px;color:var(--dark);letter-spacing:-1px;margin-bottom:8px}
-.header-sub  {font-family:var(--retro);font-size:7px;letter-spacing:4px;color:var(--light)}
+#header {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centra horizontalmente */
+  justify-content: center;
+  margin-top: 18px; /* Despega el texto de la parte superior */
+  width: 100%;
+  text-align: center;
+  z-index: 10;
+}
+/* XINHAO XIA XIA */
+.header-name { 
+  font-family: 'Pixelify Sans', sans-serif;
+  font-size: 22px;
+  font-weight: 500;
+  color: #252525;
+  letter-spacing: 1px;
+  line-height: 1;
+  text-transform: uppercase;
+  margin: 0 0 4px 0;
+}
 
-#label-select{font-family:var(--retro);font-size:7px;letter-spacing:2px;color:var(--light);text-align:center;margin:10px 0 0;animation:blink 2.5s ease-in-out infinite}
+/* GAME DESIGNER */
+.header-title { 
+  font-family: 'Pixelify Sans', sans-serif;
+  font-size: 45px;
+  font-weight: 500;
+  color: #252525;
+  line-height: 1.1;
+  text-transform: uppercase;
+  margin: 0 0 4px 0;
+}
+
+/* PORTFOLIO - 2026 */
+.header-sub { 
+  font-family: 'Pixelify Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #252525;
+  letter-spacing: 3px !important;
+  line-height: 0.4;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* - selecciona un juego - */
+#label-select { 
+  font-family: 'Pixelify Sans', sans-serif;
+  font-size: 14px !important;
+  font-weight: 500;
+  color: #a5a5a5;
+  letter-spacing: 4px !important;
+  line-height: 1;
+  text-transform: lowercase;
+  margin-top: 40px; 
+  text-align: center;
+}
+
+/* GAME NAME */
+#game-name-display { 
+  font-family: 'Pixelify Sans', sans-serif;
+  font-size: 26px !important;
+  font-weight: 500;
+  color: #252525;
+  letter-spacing: 1px;
+  line-height: 1.2;
+  text-transform: uppercase;
+  text-align: center;
+  margin: 20px 0 5px 0;
+}
+
+/* ROGUELITE */
+#game-genre-display { 
+  font-family: 'Abel', sans-serif; 
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: #a5a5a5;
+  letter-spacing: 0px;
+  line-height: 1;
+  text-transform: uppercase;
+  text-align: center;
+  margin: 0 0 15px 0;
+}
+
+#label-select{font-family:var(--retro);font-size:11px;letter-spacing:3px;color:var(--light);text-align:center;margin:15px 0 0;animation:blink 2.5s ease-in-out infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
-#game-name-display {font-family:var(--retro);font-size:10px;color:var(--dark);text-align:center;margin:10px 0 4px;min-height:22px}
-#game-genre-display{font-family:var(--ui);font-size:13px;font-weight:600;letter-spacing:4px;color:var(--mid);text-align:center;text-transform:uppercase;min-height:20px}
+#game-name-display {
+  font-family:var(--retro);
+  font-size:28px; /* Título grande */
+  color:var(--dark);
+  text-align:center;
+  margin:15px 0 2px;
+  min-height:34px;
+}
+
+#game-genre-display {
+  font-family:var(--ui);
+  font-size:12px; /* Género sutil y pequeño */
+  font-weight:600;
+  letter-spacing:2px !important;
+  color:var(--mid);
+  text-align:center;
+  text-transform:uppercase;
+  min-height:20px;
+}
 
 #carousel-outer{
   width:100%;flex:1;overflow:hidden;position:relative;margin-top:4px;
@@ -71,23 +151,84 @@ html,body{width:100%;height:100%;overflow:hidden;-webkit-font-smoothing:antialia
 
 #carousel-nav{display:flex;gap:12px;align-items:center;justify-content:center;margin:8px 0 6px}
 
-.arr-btn{font-family:var(--retro);font-size:8px;letter-spacing:1px;color:#fff;background:var(--dark);
-  border:none;border-radius:4px;padding:10px 16px;cursor:pointer;
+.arr-btn {
+  font-family:var(--retro);
+  font-size:14px; /* Flechas más grandes */
+  letter-spacing:1px;
+  color:#fff;
+  background:var(--dark);
+  border:none;
+  border-radius:6px;
+  padding:8px 14px; /* Forma más cuadrada */
+  cursor:pointer;
   box-shadow:0 3px 0 rgba(0,0,0,.4),0 6px 16px rgba(0,0,0,.1);
+  transition:transform .12s,box-shadow .12s;
+  outline:none;
+  line-height:1;
+}
+
+/* Botones de flechas en su tamaño original compacto */
+.arr-btn {
+  font-family: 'Pixelify Sans', sans-serif;
+  font-size: 24px; /* Flecha grande para que resalte */
+  font-weight: 700;
+  color: #ffffff;
+  background: #252525;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px; /* Tamaño original compacto */
+  cursor: pointer;
+  box-shadow: 0 3px 0 rgba(0,0,0,.4), 0 6px 16px rgba(0,0,0,.1);
+  transition: transform .12s, box-shadow .12s;
+  outline: none;
+  line-height: 1;
+}
+
+/* Mantenemos tus efectos de hover originales */
+.arr-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 rgba(0,0,0,.4);
+}
+.arr-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 rgba(0,0,0,.4);
+}
+
+/* Botones de flechas (Configuración original) */
+.arr-btn{font-family:var(--retro);font-size:8px;letter-spacing:1px;color:#fff;background:var(--dark);
+
+  border:none;border-radius:4px;padding:10px 16px;cursor:pointer;
+
+  box-shadow:0 3px 0 rgba(0,0,0,.4),0 6px 16px rgba(0,0,0,.1);
+
   transition:transform .12s,box-shadow .12s;outline:none;line-height:1}
+
 .arr-btn:hover {transform:translateY(-2px);box-shadow:0 5px 0 rgba(0,0,0,.4)}
+
 .arr-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.4)}
 
-#dots-nav{display:flex;gap:8px;align-items:center}
-.nav-dot{width:6px;height:6px;border-radius:50%;background:var(--dot);cursor:pointer;transition:all .3s;border:none}
-.nav-dot.active{width:20px;border-radius:3px;background:var(--dark)}
 
-#btn-insert{margin:4px 0 16px;font-family:var(--retro);font-size:8px;letter-spacing:2px;
+
+#dots-nav{display:flex;gap:8px;align-items:center}
+
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--dot);cursor:pointer;transition:all .3s;border:none}
+
+.nav-dot.active{width:20px;height:7px;border-radius:3px;background:var(--dark)}
+
+
+
+#btn-insert{margin:4px 0 16px;font-family:var(--retro);font-size:12px;letter-spacing:2px;
+
   color:#fff;background:var(--dark);border:none;border-radius:4px;padding:13px 30px;cursor:pointer;
+
   box-shadow:0 4px 0 rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.1);
+
   transition:transform .12s,box-shadow .12s;outline:none}
-#btn-insert::before{content:'▶ ';font-size:6px}
+
+#btn-insert::before{content:'▶ ';font-size:10px}
+
 #btn-insert:hover {transform:translateY(-2px);box-shadow:0 6px 0 rgba(0,0,0,.4)}
+
 #btn-insert:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.4)}
 
 /* ═══ PSP VIEW — mismo fondo que el carousel ═══ */
@@ -161,7 +302,7 @@ html,body{width:100%;height:100%;overflow:hidden;-webkit-font-smoothing:antialia
   position:fixed;bottom:24px;left:50%;
   transform:translateX(-50%);
   z-index:60;
-  font-family:var(--retro);font-size:8px;letter-spacing:2px;
+  font-family:var(--retro);font-size:12px;letter-spacing:2px;
   color:#fff;background:var(--dark);
   border:none;border-radius:4px;padding:11px 26px;cursor:pointer;outline:none;
   backdrop-filter:blur(10px);
@@ -170,7 +311,7 @@ html,body{width:100%;height:100%;overflow:hidden;-webkit-font-smoothing:antialia
   transition:opacity .35s,box-shadow .12s,transform .12s;
 }
 #btn-back.visible{opacity:1;pointer-events:auto}
-#btn-back::before{content:'◀ ';font-size:6px}
+#btn-back::before{content:'◀ ';font-size:10px}
 #btn-back:hover {transform:translateX(-50%) translateY(-2px);box-shadow:0 6px 0 rgba(0,0,0,.4);background:var(--dark)}
 #btn-back:active{transform:translateX(-50%) translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.4)}
 #btn-back:focus {outline:none}
