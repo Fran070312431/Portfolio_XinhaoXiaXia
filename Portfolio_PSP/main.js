@@ -32,16 +32,15 @@ const MANUAL_UMD_ROTATION = [0, Math.PI, 0];
 const INSERT_ANIM_SCALE  = 60;          // factor de escala del modelo animado
 const INSERT_ANIM_OFFSET = [0, 0, 0];  // desplazamiento x,y,z tras escalar
 const INSERT_ANIM_TIMESCALE = 0.9;     // velocidad de la animación (1 = normal)
-const INSERT_ANIM_HOLD_MS   = 1000;    // pausa tras la animación antes de cortar a la PSP
-const PSP_BOOT_TRIGGER_MS   = 400;     // espera tras mostrar la vista PSP antes de arrancar la pantalla (antes 900)
+const INSERT_ANIM_HOLD_MS   = 150;     // pausa tras la animación antes de cortar a la PSP (antes 1000)
+const PSP_BOOT_TRIGGER_MS   = 150;     // espera tras mostrar la vista PSP antes de arrancar la pantalla (antes 400)
+const SIDE_HIDE_OFFSET_PX   = 700;     // cuánto se desplazan los discos laterales al insertar (ajusta si no se van del todo fuera)
 
 /* ═══ CONSTANTES ═══ */
 const ITEM_W      = 380;   // igual que .umd-item width en CSS
-const LERP_SPEED  = 0.10;  // suavidad del scroll del carousel
 
 /* ═══ ESTADO ═══ */
 let currentIdx  = 0;
-let targetIdx   = 0;        // para lerp suave
 let trackOffset = 0;        // offset actual (animado)
 let appState    = 'carousel';
 let umdScenes   = [];
@@ -283,8 +282,8 @@ function buildCarousel() {
     umdScenes.push({
       renderer, scene, camera, mesh, item,
       game,
-      // Estado de escala/opacidad para lerp
-      scale: 1, opacity: 1,
+      // Estado de escala/opacidad/desplazamiento lateral para lerp
+      scale: 1, opacity: 1, sideOffset: 0,
       baseRotX: mesh.rotation.x,
       baseRotY: mesh.rotation.y,
     });
@@ -362,6 +361,8 @@ function updateDots() {
 
 /* ═══ ESCALAS (JS puro, sin clases CSS) ═══ */
 function updateScales() {
+  const inserting = appState !== 'carousel';
+
   umdScenes.forEach((s, i) => {
     const dist = Math.abs(i - currentIdx);
     // Solo se ven 3 discos: el central y un vecino a cada lado.
@@ -370,6 +371,15 @@ function updateScales() {
     const targetOpacity = dist===0 ? 1    : dist===1 ? 0.9 : 0;
     s.targetScale   = targetScale;
     s.targetOpacity = targetOpacity;
+
+    // Al insertar: los discos laterales (no el central) se deslizan
+    // fuera de pantalla hacia su lado correspondiente.
+    if (inserting && i !== currentIdx) {
+      const dir = i < currentIdx ? -1 : 1;
+      s.targetSideOffset = dir * SIDE_HIDE_OFFSET_PX;
+    } else {
+      s.targetSideOffset = 0;
+    }
   });
 }
 
@@ -492,6 +502,13 @@ function startInsert() {
   // terminen para arrancar la animación, así reacciona al instante.
   document.getElementById('bottom-ui').classList.add('hiding');
 
+  // Textos de arriba (header + "selecciona un juego") hacia arriba,
+  // nombre/género del juego hacia abajo (junto con bottom-ui).
+  document.getElementById('header').classList.add('hiding');
+  document.getElementById('label-select').classList.add('hiding');
+  document.getElementById('game-name-display').classList.add('hiding');
+  document.getElementById('game-genre-display').classList.add('hiding');
+
   insertingScene = umdScenes[currentIdx];
 
   playInsertAnimation(insertingScene, () => {
@@ -533,6 +550,10 @@ function goBack() {
     if (insertAction) insertAction.stop();
 
     document.getElementById('bottom-ui').classList.remove('hiding');
+    document.getElementById('header').classList.remove('hiding');
+    document.getElementById('label-select').classList.remove('hiding');
+    document.getElementById('game-name-display').classList.remove('hiding');
+    document.getElementById('game-genre-display').classList.remove('hiding');
     document.getElementById('view-carousel').classList.remove('hiding');
     updateLabels(); updateDots();
     appState = 'carousel';
@@ -575,73 +596,10 @@ function buildPSP() {
     pspModel.rotation.set(0, 0, 0);
     pspModel.traverse(n => { if(n.isMesh){n.castShadow=true;n.receiveShadow=true;} });
 
-    // ── Detectar la malla de pantalla ──
-    // Buscamos el mesh más ancho en X y plano en Z (la pantalla LCD)
-    // entre todos los meshes del modelo
-    pspModel.updateMatrixWorld(true);
-    let screenMesh = null, bestScore = -Infinity;
-    pspModel.traverse(n => {
-      if (!n.isMesh) return;
-      const b = new THREE.Box3().setFromObject(n);
-      const s = b.getSize(new THREE.Vector3());
-      // Pantalla: ancha en X, alta en Y, delgada en Z, y en la mitad delantera del modelo
-      const score = (s.x * s.y) / (s.z + 0.001);
-      if (score > bestScore) { bestScore = score; screenMesh = n; }
-    });
-
-    if (screenMesh) {
-      pspScreenBox3D = new THREE.Box3().setFromObject(screenMesh);
-      console.log('✅ Pantalla detectada, bbox:', pspScreenBox3D);
-    } else {
-      // Fallback: usar la mitad superior-central de la PSP
-      const fullBox = new THREE.Box3().setFromObject(pspModel);
-      const c = fullBox.getCenter(new THREE.Vector3());
-      const s = fullBox.getSize(new THREE.Vector3());
-      pspScreenBox3D = new THREE.Box3(
-        new THREE.Vector3(c.x - s.x * 0.28, c.y - s.y * 0.1, c.z + s.z * 0.3),
-        new THREE.Vector3(c.x + s.x * 0.28, c.y + s.y * 0.35, c.z + s.z * 0.5)
-      );
-    }
-
   } else {
     pspModel = makeFallbackPSP();
   }
   pspScene.add(pspModel);
-}
-
-// Proyecta un punto 3D a coordenadas de píxel en el canvas
-function project3D(v3, camera, canvas) {
-  const v = v3.clone().project(camera);
-  return {
-    x: (v.x + 1) / 2 * canvas.clientWidth,
-    y: (1 - (v.y + 1) / 2) * canvas.clientHeight
-  };
-}
-
-// Actualiza la posición del overlay HTML para que coincida exactamente
-// con la pantalla 3D del modelo PSP
-function updateScreenOverlay() {
-  const screen = document.getElementById('psp-screen');
-  const cv     = document.getElementById('psp-canvas');
-  if (!pspScreenBox3D || !pspCamera || cv.clientWidth === 0) return;
-
-  const min = pspScreenBox3D.min;
-  const max = pspScreenBox3D.max;
-
-  // Proyectar las 4 esquinas de la bbox de la pantalla
-  const tl = project3D(new THREE.Vector3(min.x, max.y, max.z), pspCamera, cv);
-  const br = project3D(new THREE.Vector3(max.x, min.y, max.z), pspCamera, cv);
-
-  const rect = cv.getBoundingClientRect();
-  const left   = rect.left + tl.x;
-  const top    = rect.top  + tl.y;
-  const width  = br.x - tl.x;
-  const height = br.y - tl.y;
-
-  screen.style.left   = left   + 'px';
-  screen.style.top    = top    + 'px';
-  screen.style.width  = width  + 'px';
-  screen.style.height = height + 'px';
 }
 
 function makeFallbackPSP() {
@@ -699,7 +657,7 @@ function bootScreen(game) {
       .join('');
 
     updateClock();
-  }, 750);
+  }, 300);
 }
 function updateClock() {
   const n=new Date(), el=document.getElementById('sg-time');
@@ -755,16 +713,25 @@ function animLoop() {
     if (!s.mesh) return;
     const isCenter = i === currentIdx;
 
-    // ─ Lerp escala y opacidad del item DOM ─
-    // (si este item es el que está reproduciendo la animación de
-    //  inserción, su canvas 2D está oculto por playInsertAnimation,
-    //  así que no lo pisamos)
-    if (!(insertAnimPlaying && insertingScene === s)) {
-      s.scale   = s.scale   + ((s.targetScale   ?? 1) - s.scale)   * 0.1;
-      s.opacity = s.opacity + ((s.targetOpacity ?? 1) - s.opacity) * 0.1;
-      s.item.style.transform = `scale(${s.scale})`;
+    // ─ Lerp escala/opacidad/desplazamiento lateral del item DOM ─
+    // Se SALTA por completo mientras este item es el que se está
+    // insertando y seguimos fuera del carrusel (appState!=='carousel'),
+    // para que no vuelva a hacerse visible hasta volver atrás con
+    // goBack() (que resetea su estilo explícitamente).
+    const isInsertingThisScene = insertingScene === s && appState !== 'carousel';
+    if (!isInsertingThisScene) {
+      s.scale      = s.scale      + ((s.targetScale      ?? 1) - s.scale)      * 0.1;
+      s.opacity    = s.opacity    + ((s.targetOpacity    ?? 1) - s.opacity)    * 0.1;
+      s.sideOffset = (s.sideOffset ?? 0) + ((s.targetSideOffset ?? 0) - (s.sideOffset ?? 0)) * 0.1;
+      s.item.style.transform = `scale(${s.scale}) translateX(${s.sideOffset}px)`;
       s.item.style.opacity   = s.opacity.toString();
     }
+
+    // Con más de 3 juegos, los que quedan a dist>=2 están siempre a
+    // opacidad 0 (invisibles). Nos ahorramos animarlos y, sobre todo,
+    // el render() de Three.js — no aporta nada verlos si no se ven.
+    const isHidden = s.opacity < 0.01 && (s.targetOpacity ?? 0) < 0.01;
+    if (isHidden) return;
 
     // ─ Rotación flotante normal ─
     const wobbleY = isCenter ? Math.sin(time * 0.7) * 0.07 : (i < currentIdx ? 0.1 : -0.1);
