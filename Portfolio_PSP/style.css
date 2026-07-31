@@ -227,14 +227,14 @@ body {
 /* Pantalla PSP: tamaño fijo relativo al viewport, centrada */
 #psp-screen{
   position:relative;z-index:10;
-  width:min(660px,58vw);
-  aspect-ratio:480/272;
+  width:min(712px,58vw);
+  aspect-ratio:480/295;
   border-radius:3px;
   overflow:hidden;
   background:#000;
   display:flex;flex-direction:column;
   /* Subir la pantalla un poco para alinearse con el bezel del modelo */
-  margin-top:-6vh;
+  margin-top:-5.5vh;
 }
 
 /* Idle */

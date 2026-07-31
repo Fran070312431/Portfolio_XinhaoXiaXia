@@ -10,47 +10,32 @@ const GAMES = [
 ];
 /* ▲▲▲ FIN EDICIÓN ▲▲▲ */
 
-/* ═══════════════════════════════════════════════
-   AJUSTE MANUAL — si el cartucho sigue saliendo
-   de espaldas o de lado, pon aquí la rotación
-   correcta a mano (en radianes) y pondrá
-   FORCE_UMD_ROTATION = true para usarla siempre
-   en vez de la detección automática.
-   Prueba valores como [0,0,0], [0,Math.PI,0],
-   [Math.PI/2,0,0], etc. hasta que se vea de frente.
-═══════════════════════════════════════════════ */
 const FORCE_UMD_ROTATION = false;
 const MANUAL_UMD_ROTATION = [0, Math.PI, 0];
 
-/* ═══════════════════════════════════════════════
-   AJUSTE ANIMACIÓN DE INSERCIÓN (Blender .glb)
-   Si al reproducir insert_anim.glb el cartucho se
-   ve demasiado grande/pequeño o descentrado respecto
-   al hueco donde estaba el item del carrusel, toca
-   estos dos valores a mano.
-═══════════════════════════════════════════════ */
-const INSERT_ANIM_SCALE  = 60;          // factor de escala del modelo animado
-const INSERT_ANIM_OFFSET = [0, 0, 0];  // desplazamiento x,y,z tras escalar
-const INSERT_ANIM_TIMESCALE = 0.9;     // velocidad de la animación (1 = normal)
-const INSERT_ANIM_HOLD_MS   = 150;     // pausa tras la animación antes de cortar a la PSP (antes 1000)
-const PSP_BOOT_TRIGGER_MS   = 150;     // espera tras mostrar la vista PSP antes de arrancar la pantalla (antes 400)
-const SIDE_HIDE_OFFSET_PX   = 700;     // cuánto se desplazan los discos laterales al insertar (ajusta si no se van del todo fuera)
+const INSERT_ANIM_SCALE  = 60;          
+const INSERT_ANIM_OFFSET = [0, 0, 0];  
+const INSERT_ANIM_TIMESCALE = 0.9;     
+const INSERT_ANIM_HOLD_MS   = 150;     
+const PSP_BOOT_TRIGGER_MS   = 150;     
+const SIDE_HIDE_OFFSET_PX   = 700;     
 
 /* ═══ CONSTANTES ═══ */
-const ITEM_W      = 380;   // igual que .umd-item width en CSS
+const ITEM_W = 380;   
 
 /* ═══ ESTADO ═══ */
 let currentIdx  = 0;
-let trackOffset = 0;        // offset actual (animado)
+let trackOffset = 0;        
 let appState    = 'carousel';
 let umdScenes   = [];
 let umdTemplate = null;
 let pspGLTF     = null;
 let pspRenderer = null, pspScene = null, pspCamera = null, pspModel = null;
 let modelsReady = 0;
+let clockTimer  = null;
 
 /* inserción */
-let insertingScene = null;  // umdScene que se está insertando (para ocultar/restaurar su canvas 2D)
+let insertingScene = null;  
 
 /* inserción — animación real vía Blender (.glb + AnimationMixer) */
 let insertAnimGLTF     = null;
@@ -63,25 +48,54 @@ let insertAction       = null;
 let insertAnimReady    = false;
 let insertAnimPlaying  = false;
 
+/* ═══ CACHÉ DOM ═══ */
+let DOM = {};
+
+function cacheDOM() {
+  DOM.loadBar          = document.querySelector('.load-bar');
+  DOM.loading          = document.getElementById('loading');
+  DOM.carouselOuter    = document.getElementById('carousel-outer');
+  DOM.carouselTrack    = document.getElementById('carousel-track');
+  DOM.dotsNav          = document.getElementById('dots-nav');
+  DOM.gameNameDisplay  = document.getElementById('game-name-display');
+  DOM.gameGenreDisplay = document.getElementById('game-genre-display');
+  DOM.bottomUi         = document.getElementById('bottom-ui');
+  DOM.header           = document.getElementById('header');
+  DOM.labelSelect      = document.getElementById('label-select');
+  DOM.viewCarousel     = document.getElementById('view-carousel');
+  DOM.viewPsp          = document.getElementById('view-psp');
+  DOM.btnBack          = document.getElementById('btn-back');
+  DOM.pspCanvas        = document.getElementById('psp-canvas');
+  DOM.screenIdle       = document.getElementById('screen-idle');
+  DOM.screenGame       = document.getElementById('screen-game');
+  DOM.pspScreen        = document.getElementById('psp-screen');
+  DOM.sgTitle          = document.getElementById('sg-title');
+  DOM.sgGenre          = document.getElementById('sg-genre');
+  DOM.sgYear           = document.getElementById('sg-year');
+  DOM.sgDesc           = document.getElementById('sg-desc');
+  DOM.sgTags           = document.getElementById('sg-tags');
+  DOM.sgTime           = document.getElementById('sg-time');
+  DOM.sgBody           = document.querySelector('.sg-body');
+}
+
 /* ═══ LOADING ═══ */
-const loadBar = document.querySelector('.load-bar');
 let fakePct = 0;
 const fakeTimer = setInterval(() => {
   fakePct = Math.min(fakePct + Math.random() * 10, 80);
-  loadBar.style.width = fakePct + '%';
+  if (DOM.loadBar) DOM.loadBar.style.width = fakePct + '%';
 }, 180);
 
 function modelLoaded() {
   modelsReady++;
-  loadBar.style.width = (80 + modelsReady * 7) + '%';
+  if (DOM.loadBar) DOM.loadBar.style.width = (80 + modelsReady * 7) + '%';
   if (modelsReady >= 3) {
     clearInterval(fakeTimer);
-    loadBar.style.width = '100%';
+    if (DOM.loadBar) DOM.loadBar.style.width = '100%';
     setTimeout(init, 350);
   }
 }
 
-/* ═══ GLTF ═══ */
+/* ═══ GLTF LOADER ═══ */
 const gltfLoader = new THREE.GLTFLoader();
 gltfLoader.load('models/sony_psp.glb',
   g => { pspGLTF = g; modelLoaded(); }, undefined,
@@ -109,7 +123,7 @@ function playPSPSound() {
     const flt=ctx.createBiquadFilter(); flt.type='lowpass'; flt.frequency.value=800;
     const gn=ctx.createGain(); gn.gain.value=0.5;
     src.connect(flt); flt.connect(gn); gn.connect(ctx.destination); src.start();
-    // click
+
     const cb=ctx.createBuffer(1,2048,sr); const cd=cb.getChannelData(0);
     for(let i=0;i<2048;i++) cd[i]=(Math.random()*2-1)*Math.exp(-i/180);
     const cs=ctx.createBufferSource(); cs.buffer=cb;
@@ -120,39 +134,35 @@ function playPSPSound() {
 
 /* ═══ INIT ═══ */
 function init() {
+  cacheDOM();
   buildCarousel();
   buildPSP();
   buildDots();
-  // Centrar inmediatamente sin animación
+
   trackOffset = centeredOffset(0);
   applyTrackTransform(trackOffset);
   updateLabels();
   updateDots();
   updateScales();
-  document.getElementById('loading').classList.add('done');
+
+  if (DOM.loading) DOM.loading.classList.add('done');
   requestAnimationFrame(animLoop);
 }
 
-/* ═══════════════════════════════════════════════
-   CENTRADO: el offset que pone item[idx] en el
-   centro de #carousel-outer
-═══════════════════════════════════════════════ */
 function centeredOffset(idx) {
-  const outerW = document.getElementById('carousel-outer').offsetWidth;
-  // Centro del outer - posición del centro del item idx
+  const outerW = DOM.carouselOuter ? DOM.carouselOuter.offsetWidth : window.innerWidth;
   return (outerW / 2) - (idx * ITEM_W) - (ITEM_W / 2);
 }
 
 function applyTrackTransform(offset) {
-  document.getElementById('carousel-track').style.transform = `translateX(${offset}px)`;
+  if (DOM.carouselTrack) DOM.carouselTrack.style.transform = `translateX(${offset}px)`;
 }
 
 /* ═══ BUILD CAROUSEL ═══ */
-const trackEl = document.getElementById('carousel-track');
-
 function buildCarousel() {
   umdScenes = [];
-  trackEl.innerHTML = '';
+  if (!DOM.carouselTrack) return;
+  DOM.carouselTrack.innerHTML = '';
 
   GAMES.forEach((game, i) => {
     const item = document.createElement('div');
@@ -167,9 +177,8 @@ function buildCarousel() {
 
     item.appendChild(cv);
     item.appendChild(shadowEl);
-    trackEl.appendChild(item);
+    DOM.carouselTrack.appendChild(item);
 
-    /* ── Three.js micro-escena ── */
     const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.setClearColor(0, 0);
@@ -181,7 +190,6 @@ function buildCarousel() {
     camera.position.set(0, 0, 8);
     camera.lookAt(0, 0, 0);
 
-    // Luces
     scene.add(new THREE.AmbientLight(0xffffff, 0.6));
     const kl = new THREE.DirectionalLight(0xffffff, 2.2); kl.position.set(5, 8, 7); scene.add(kl);
     const fl = new THREE.DirectionalLight(0x99aaff, 0.5); fl.position.set(-5, -2, 4); scene.add(fl);
@@ -189,23 +197,19 @@ function buildCarousel() {
     const glowLight = new THREE.PointLight(parseInt(game.accentColor.replace('#',''), 16), 1.0, 9);
     glowLight.position.set(0, 0, 3); scene.add(glowLight);
 
-    /* ── Mesh UMD ── */
     let mesh;
     if (umdTemplate) {
       mesh = umdTemplate.clone();
 
-      // Normalizar tamaño (escala provisional, el centrado real se hace después de rotar)
       const box0  = new THREE.Box3().setFromObject(mesh);
       const size0 = box0.getSize(new THREE.Vector3());
       const maxD  = Math.max(size0.x, size0.y, size0.z);
       const sc    = 4.2 / maxD;
       mesh.scale.setScalar(sc);
 
-      // ── ROTACIÓN FRONTAL ──
       if (FORCE_UMD_ROTATION) {
         mesh.rotation.set(MANUAL_UMD_ROTATION[0], MANUAL_UMD_ROTATION[1], MANUAL_UMD_ROTATION[2]);
       } else {
-        // 1) Encontrar el eje "plano" probando 8 orientaciones
         const flatRots = [
           [0,0,0], [0,Math.PI,0],
           [Math.PI/2,0,0], [-Math.PI/2,0,0],
@@ -222,7 +226,6 @@ function buildCarousel() {
           if (score > bestScore) { bestScore = score; bestRot = r; }
         }
 
-        // 2) Decidir signo correcto comparando relieve hacia +Z en ambas caras
         const candidateA = bestRot;
         const candidateB = [bestRot[0], bestRot[1] + Math.PI, bestRot[2]];
 
@@ -230,10 +233,10 @@ function buildCarousel() {
           mesh.rotation.set(rot[0],rot[1],rot[2]);
           mesh.updateMatrixWorld(true);
           let totalZ = 0, count = 0;
+          const v = new THREE.Vector3();
           mesh.traverse(n => {
             if (n.isMesh && n.geometry && n.geometry.attributes.position) {
               const posAttr = n.geometry.attributes.position;
-              const v = new THREE.Vector3();
               const step = Math.max(1, Math.floor(posAttr.count / 200));
               for (let vi = 0; vi < posAttr.count; vi += step) {
                 v.fromBufferAttribute(posAttr, vi);
@@ -253,16 +256,11 @@ function buildCarousel() {
         mesh.rotation.set(bestRot[0], bestRot[1], bestRot[2]);
       }
 
-      // ── RECENTRADO REAL ──
-      // Importante: se hace DESPUÉS de fijar la rotación definitiva,
-      // porque el centro de masa cambia al rotar. Si centramos antes
-      // de rotar, el disco queda descuadrado (efecto "movido a la izquierda").
       mesh.updateMatrixWorld(true);
       const box1    = new THREE.Box3().setFromObject(mesh);
       const center1 = box1.getCenter(new THREE.Vector3());
       mesh.position.sub(center1);
 
-      // Tint del color del juego
       const col = new THREE.Color(game.discColor);
       mesh.traverse(n => {
         if (n.isMesh) {
@@ -282,10 +280,10 @@ function buildCarousel() {
     umdScenes.push({
       renderer, scene, camera, mesh, item,
       game,
-      // Estado de escala/opacidad/desplazamiento lateral para lerp
       scale: 1, opacity: 1, sideOffset: 0,
       baseRotX: mesh.rotation.x,
       baseRotY: mesh.rotation.y,
+      lastW: 0, lastH: 0
     });
   });
 }
@@ -293,29 +291,28 @@ function buildCarousel() {
 function makeFallbackUMD(game) {
   const g = new THREE.Group();
   const col = new THREE.Color(game.discColor);
-  // Carcasa
   const shell = new THREE.Mesh(
     new THREE.CylinderGeometry(1.9,1.9,0.26,64),
     new THREE.MeshStandardMaterial({color:0x202020,metalness:0.3,roughness:0.5}));
   shell.rotation.x = Math.PI/2; g.add(shell);
-  // Disco
+
   const disc = new THREE.Mesh(
     new THREE.CylinderGeometry(1.5,1.5,0.09,64),
     new THREE.MeshStandardMaterial({color:col,metalness:0.7,roughness:0.15}));
   disc.rotation.x = Math.PI/2; disc.position.z = 0.1; g.add(disc);
-  // Anillos iridiscentes
+
   for (let r=0.3; r<1.45; r+=0.09) {
     const ring = new THREE.Mesh(
       new THREE.TorusGeometry(r,0.005,8,64),
       new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:0.06,metalness:0.9}));
     ring.position.z = 0.12; g.add(ring);
   }
-  // Agujero
+
   const hole = new THREE.Mesh(
     new THREE.CylinderGeometry(0.15,0.15,0.12,32),
     new THREE.MeshStandardMaterial({color:0x080808}));
   hole.rotation.x = Math.PI/2; hole.position.z = 0.11; g.add(hole);
-  // Borde
+
   const rim = new THREE.Mesh(
     new THREE.TorusGeometry(1.9,0.022,12,64),
     new THREE.MeshStandardMaterial({color:0x888888,metalness:0.9,roughness:0.1}));
@@ -341,39 +338,41 @@ function onUMDClick(idx) {
 
 function updateLabels() {
   const g = GAMES[currentIdx];
-  document.getElementById('game-name-display').textContent  = g.title;
-  document.getElementById('game-genre-display').textContent = g.genre;
+  if (DOM.gameNameDisplay)  DOM.gameNameDisplay.textContent  = g.title;
+  if (DOM.gameGenreDisplay) DOM.gameGenreDisplay.textContent = g.genre;
 }
 
 /* ═══ DOTS ═══ */
 function buildDots() {
-  const c = document.getElementById('dots-nav'); c.innerHTML = '';
+  if (!DOM.dotsNav) return;
+  DOM.dotsNav.innerHTML = '';
   GAMES.forEach((_, i) => {
     const b = document.createElement('button');
     b.className = 'nav-dot' + (i === 0 ? ' active' : '');
     b.onclick = () => { if(appState!=='carousel') return; currentIdx=i; updateLabels(); updateDots(); };
-    c.appendChild(b);
+    DOM.dotsNav.appendChild(b);
   });
 }
+
 function updateDots() {
-  document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i===currentIdx));
+  if (!DOM.dotsNav) return;
+  const dots = DOM.dotsNav.children;
+  for (let i = 0; i < dots.length; i++) {
+    dots[i].classList.toggle('active', i === currentIdx);
+  }
 }
 
-/* ═══ ESCALAS (JS puro, sin clases CSS) ═══ */
+/* ═══ ESCALAS ═══ */
 function updateScales() {
   const inserting = appState !== 'carousel';
 
   umdScenes.forEach((s, i) => {
     const dist = Math.abs(i - currentIdx);
-    // Solo se ven 3 discos: el central y un vecino a cada lado.
-    // A partir de dist 2 quedan invisibles (igual que en el diseño).
     const targetScale   = dist===0 ? 1.18 : dist===1 ? 1 : 0.9;
     const targetOpacity = dist===0 ? 1    : dist===1 ? 0.9 : 0;
     s.targetScale   = targetScale;
     s.targetOpacity = targetOpacity;
 
-    // Al insertar: los discos laterales (no el central) se deslizan
-    // fuera de pantalla hacia su lado correspondiente.
     if (inserting && i !== currentIdx) {
       const dir = i < currentIdx ? -1 : 1;
       s.targetSideOffset = dir * SIDE_HIDE_OFFSET_PX;
@@ -383,16 +382,10 @@ function updateScales() {
   });
 }
 
-/* ═══════════════════════════════════════════════
-   ANIMACIÓN DE INSERCIÓN — escena dedicada que
-   reproduce el clip horneado en insert_anim.glb
-   una sola vez (AnimationMixer + LoopOnce).
-═══════════════════════════════════════════════ */
+/* ═══ SETUP INSERT ANIM ═══ */
 function setupInsertAnimScene() {
   if (!insertAnimGLTF) return;
 
-  // Canvas flotante creado a mano (no hace falta tocar el HTML),
-  // posicionado en pantalla justo encima del item que se pulsa.
   insertAnimCanvas = document.createElement('canvas');
   insertAnimCanvas.id = 'insert-anim-canvas';
   Object.assign(insertAnimCanvas.style, {
@@ -430,34 +423,22 @@ function setupInsertAnimScene() {
     insertAction = insertMixer.clipAction(clip);
     insertAction.setLoop(THREE.LoopOnce, 1);
     insertAction.clampWhenFinished = true;
-  } else {
-    console.warn('insert_anim.glb no contiene ninguna animación (AnimationClip).');
   }
-
   insertAnimReady = true;
 }
 
-/**
- * Reproduce la animación de inserción sobre el item indicado
- * y llama a onDone() cuando termina (una sola pasada).
- */
 function playInsertAnimation(scene, onDone) {
   if (!insertAnimReady || !insertAction) {
-    // No hay animación cargada todavía: seguir sin bloquear el flujo
     onDone();
     return;
   }
 
-  // Ocultamos el canvas 2D del item — lo sustituye la animación 3D real
   scene.item.style.opacity = '0';
 
   const rect  = scene.item.getBoundingClientRect();
   const baseW = Math.max(rect.width, 1);
   const baseH = Math.max(rect.height, 1);
 
-  // Damos más "aire" alrededor del item para que el cartucho pueda
-  // subir/bajar sin que el canvas lo recorte, manteniendo el tamaño
-  // aparente igual (compensamos alejando la cámara el mismo factor).
   const mult = 3;
   const w = baseW * mult;
   const h = baseH * mult;
@@ -492,38 +473,28 @@ function playInsertAnimation(scene, onDone) {
   insertMixer.addEventListener('finished', onFinished);
 }
 
-/* ═══ INSERTAR ═══ */
+/* ═══ INSERTAR / VOLVER ═══ */
 function startInsert() {
   if (appState !== 'carousel') return;
   appState = 'inserting';
   playPSPSound();
 
-  // Ocultamos los botones en paralelo — ya no esperamos a que
-  // terminen para arrancar la animación, así reacciona al instante.
-  document.getElementById('bottom-ui').classList.add('hiding');
-
-  // Textos de arriba (header + "selecciona un juego") hacia arriba,
-  // nombre/género del juego hacia abajo (junto con bottom-ui).
-  document.getElementById('header').classList.add('hiding');
-  document.getElementById('label-select').classList.add('hiding');
-  document.getElementById('game-name-display').classList.add('hiding');
-  document.getElementById('game-genre-display').classList.add('hiding');
+  if (DOM.bottomUi)         DOM.bottomUi.classList.add('hiding');
+  if (DOM.header)           DOM.header.classList.add('hiding');
+  if (DOM.labelSelect)      DOM.labelSelect.classList.add('hiding');
+  if (DOM.gameNameDisplay)  DOM.gameNameDisplay.classList.add('hiding');
+  if (DOM.gameGenreDisplay) DOM.gameGenreDisplay.classList.add('hiding');
 
   insertingScene = umdScenes[currentIdx];
 
   playInsertAnimation(insertingScene, () => {
-    // Pequeña pausa tras terminar la inserción antes de cortar a la
-    // PSP, para que no sea un cambio brusco de plano.
     setTimeout(() => {
-      document.getElementById('view-carousel').classList.add('hiding');
-      document.getElementById('view-psp').classList.add('visible');
-      // Este segundo delay solo deja que la transición CSS de
-      // #view-psp (que dura PSP_SLIDE_MS, ver style.css) se vea
-      // avanzada antes de arrancar la pantalla — no es una pausa
-      // "a propósito" como la de arriba, así que va más corto.
+      if (DOM.viewCarousel) DOM.viewCarousel.classList.add('hiding');
+      if (DOM.viewPsp)      DOM.viewPsp.classList.add('visible');
+
       setTimeout(() => {
         bootScreen(GAMES[currentIdx]);
-        document.getElementById('btn-back').classList.add('visible');
+        if (DOM.btnBack) DOM.btnBack.classList.add('visible');
         appState = 'psp';
       }, PSP_BOOT_TRIGGER_MS);
     }, INSERT_ANIM_HOLD_MS);
@@ -533,13 +504,12 @@ function startInsert() {
 function goBack() {
   if (appState !== 'psp') return;
   appState = 'inserting';
-  document.getElementById('btn-back').classList.remove('visible');
-  document.getElementById('screen-game').classList.remove('active');
-  document.getElementById('screen-idle').style.display = 'flex';
-  document.getElementById('view-psp').classList.remove('visible');
+  if (DOM.btnBack)    DOM.btnBack.classList.remove('visible');
+  if (DOM.screenGame) DOM.screenGame.classList.remove('active');
+  if (DOM.screenIdle) DOM.screenIdle.style.display = 'flex';
+  if (DOM.viewPsp)    DOM.viewPsp.classList.remove('visible');
 
   setTimeout(() => {
-    // Reset estado de inserción
     if (insertingScene) {
       insertingScene.item.style.opacity   = '';
       insertingScene.item.style.transform = '';
@@ -549,22 +519,22 @@ function goBack() {
     insertAnimPlaying = false;
     if (insertAction) insertAction.stop();
 
-    document.getElementById('bottom-ui').classList.remove('hiding');
-    document.getElementById('header').classList.remove('hiding');
-    document.getElementById('label-select').classList.remove('hiding');
-    document.getElementById('game-name-display').classList.remove('hiding');
-    document.getElementById('game-genre-display').classList.remove('hiding');
-    document.getElementById('view-carousel').classList.remove('hiding');
+    if (DOM.bottomUi)         DOM.bottomUi.classList.remove('hiding');
+    if (DOM.header)           DOM.header.classList.remove('hiding');
+    if (DOM.labelSelect)      DOM.labelSelect.classList.remove('hiding');
+    if (DOM.gameNameDisplay)  DOM.gameNameDisplay.classList.remove('hiding');
+    if (DOM.gameGenreDisplay) DOM.gameGenreDisplay.classList.remove('hiding');
+    if (DOM.viewCarousel)     DOM.viewCarousel.classList.remove('hiding');
+
     updateLabels(); updateDots();
     appState = 'carousel';
   }, 700);
 }
 
-/* ═══ PSP 3D ═══ */
-
+/* ═══ PSP 3D (AQUÍ ESTÁ LA SOLUCIÓN A LA LÍNEA VERTICAL) ═══ */
 function buildPSP() {
-  const cv = document.getElementById('psp-canvas');
-  pspRenderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true });
+  if (!DOM.pspCanvas) return;
+  pspRenderer = new THREE.WebGLRenderer({ canvas: DOM.pspCanvas, antialias: true, alpha: true });
   pspRenderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   pspRenderer.setClearColor(0, 0);
   pspRenderer.shadowMap.enabled = true;
@@ -578,24 +548,37 @@ function buildPSP() {
   pspCamera.lookAt(0, 0, 0);
 
   pspScene.add(new THREE.AmbientLight(0xffffff, 0.5));
-  const kl=new THREE.DirectionalLight(0xffffff,3.2); kl.position.set(8,14,10); kl.castShadow=true; kl.shadow.mapSize.set(2048,2048); pspScene.add(kl);
-  const fl=new THREE.DirectionalLight(0x8899ff,0.7); fl.position.set(-10,3,-6); pspScene.add(fl);
-  const rl=new THREE.DirectionalLight(0xffeedd,0.5); rl.position.set(3,-8,-8); pspScene.add(rl);
-  const bl=new THREE.DirectionalLight(0xffffff,0.3); bl.position.set(0,-10,5); pspScene.add(bl);
+
+  // 🔧 LUZ PRINCIPAL Y CONFIGURACIÓN DE SOMBRAS CORREGIDA
+  const kl = new THREE.DirectionalLight(0xffffff, 3.2); 
+  kl.position.set(8, 14, 10); 
+  kl.castShadow = true; 
+  kl.shadow.camera.left = -15;    // Ampliado para evitar la línea vertical a la izquierda
+  kl.shadow.camera.right = 15;   // Ampliado a la derecha
+  kl.shadow.camera.top = 15;
+  kl.shadow.camera.bottom = -15;
+  kl.shadow.camera.near = 0.5;
+  kl.shadow.camera.far = 30;
+  kl.shadow.mapSize.set(2048, 2048);
+  kl.shadow.bias = -0.0005;       // Elimina artefactos y acné de sombra en la geometría
+  pspScene.add(kl);
+
+  const fl = new THREE.DirectionalLight(0x8899ff, 0.7); fl.position.set(-10, 3, -6); pspScene.add(fl);
+  const rl = new THREE.DirectionalLight(0xffeedd, 0.5); rl.position.set(3, -8, -8); pspScene.add(rl);
+  const bl = new THREE.DirectionalLight(0xffffff, 0.3); bl.position.set(0, -10, 5); pspScene.add(bl);
 
   if (pspGLTF) {
     pspModel = pspGLTF.scene;
     const box  = new THREE.Box3().setFromObject(pspModel);
     const maxD = Math.max(...box.getSize(new THREE.Vector3()).toArray());
 
-    const PSP_TARGET_SIZE = 13; // ← sube/baja para cambiar tamaño
+    const PSP_TARGET_SIZE = 15; 
 
     const sc = PSP_TARGET_SIZE / maxD;
     pspModel.scale.setScalar(sc);
     pspModel.position.sub(box.getCenter(new THREE.Vector3()).multiplyScalar(sc));
     pspModel.rotation.set(0, 0, 0);
-    pspModel.traverse(n => { if(n.isMesh){n.castShadow=true;n.receiveShadow=true;} });
-
+    pspModel.traverse(n => { if(n.isMesh){ n.castShadow = true; n.receiveShadow = true; } });
   } else {
     pspModel = makeFallbackPSP();
   }
@@ -626,43 +609,44 @@ function makeFallbackPSP() {
 
 /* ═══ PANTALLA ═══ */
 function bootScreen(game) {
-  const idle = document.getElementById('screen-idle');
-  const gscr = document.getElementById('screen-game');
-  const pscr = document.getElementById('psp-screen');
-  const body = document.querySelector('.sg-body');
-  if (body) body.scrollTop = 0;
+  if (DOM.sgBody) DOM.sgBody.scrollTop = 0;
 
-  idle.style.display = 'flex';
-  gscr.classList.remove('active');
-  pscr.classList.add('screen-booting');
+  if (DOM.screenIdle) DOM.screenIdle.style.display = 'flex';
+  if (DOM.screenGame) DOM.screenGame.classList.remove('active');
+  if (DOM.pspScreen)  DOM.pspScreen.classList.add('screen-booting');
 
   setTimeout(() => {
-    pscr.classList.remove('screen-booting');
-    idle.style.display = 'none';
-    gscr.classList.add('active');
+    if (DOM.pspScreen)  DOM.pspScreen.classList.remove('screen-booting');
+    if (DOM.screenIdle) DOM.screenIdle.style.display = 'none';
+    if (DOM.screenGame) DOM.screenGame.classList.add('active');
 
-    // Pasar color del juego como CSS var al sg-body para el gradiente de fondo
-    if (body) body.style.setProperty('--game-color', game.discColor);
+    if (DOM.sgBody) DOM.sgBody.style.setProperty('--game-color', game.discColor);
+    if (DOM.sgTitle) DOM.sgTitle.textContent = game.title;
 
-    document.getElementById('sg-title').textContent = game.title;
+    if (DOM.sgGenre) {
+      DOM.sgGenre.textContent = game.genre;
+      DOM.sgGenre.style.color = game.accentColor;
+    }
 
-    const genreEl = document.getElementById('sg-genre');
-    genreEl.textContent = game.genre;
-    genreEl.style.color = game.accentColor;
-
-    document.getElementById('sg-year').textContent = game.year;
-    document.getElementById('sg-desc').textContent = game.desc;
-    document.getElementById('sg-tags').innerHTML = game.tags
-      .map(t => `<span class="sg-tag" style="border-color:${game.accentColor}33;color:${game.accentColor}cc">${t}</span>`)
-      .join('');
+    if (DOM.sgYear) DOM.sgYear.textContent = game.year;
+    if (DOM.sgDesc) DOM.sgDesc.textContent = game.desc;
+    if (DOM.sgTags) {
+      DOM.sgTags.innerHTML = game.tags
+        .map(t => `<span class="sg-tag" style="border-color:${game.accentColor}33;color:${game.accentColor}cc">${t}</span>`)
+        .join('');
+    }
 
     updateClock();
   }, 300);
 }
+
 function updateClock() {
-  const n=new Date(), el=document.getElementById('sg-time');
-  if(el) el.textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
-  if(appState==='psp') setTimeout(updateClock,30000);
+  if (clockTimer) clearTimeout(clockTimer);
+  const n = new Date();
+  if (DOM.sgTime) DOM.sgTime.textContent = String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
+  if (appState === 'psp') {
+    clockTimer = setTimeout(updateClock, 30000);
+  }
 }
 
 /* ═══ EVENTOS ═══ */
@@ -670,27 +654,30 @@ document.getElementById('arr-left').onclick   = () => navigate(-1);
 document.getElementById('arr-right').onclick  = () => navigate(1);
 document.getElementById('btn-insert').onclick = startInsert;
 document.getElementById('btn-back').onclick   = goBack;
-window.addEventListener('keydown', e=>{
+
+window.addEventListener('keydown', e => {
   if(e.key==='ArrowLeft')  navigate(-1);
   if(e.key==='ArrowRight') navigate(1);
   if(e.key==='Enter'  && appState==='carousel') startInsert();
   if(e.key==='Escape' && appState==='psp')      goBack();
 });
+
 window.addEventListener('resize', () => {
-  if (appState === 'carousel') { trackOffset = centeredOffset(currentIdx); applyTrackTransform(trackOffset); }
-
-});
-let tx=null;
-document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;},{passive:true});
-document.addEventListener('touchend',  e=>{
-  if(tx===null) return;
-  const dx=e.changedTouches[0].clientX-tx; tx=null;
-  if(Math.abs(dx)>50) navigate(dx<0?1:-1);
+  if (appState === 'carousel') { 
+    trackOffset = centeredOffset(currentIdx); 
+    applyTrackTransform(trackOffset); 
+  }
 });
 
-/* ═══════════════════════════════════════════════
-   ANIMATION LOOP
-═══════════════════════════════════════════════ */
+let tx = null;
+document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, {passive:true});
+document.addEventListener('touchend', e => {
+  if(tx === null) return;
+  const dx = e.changedTouches[0].clientX - tx; tx = null;
+  if(Math.abs(dx) > 50) navigate(dx < 0 ? 1 : -1);
+});
+
+/* ═══ ANIMATION LOOP ═══ */
 let time = 0;
 const clock = new THREE.Clock();
 
@@ -699,25 +686,18 @@ function animLoop() {
   const dt = Math.min(clock.getDelta(), 0.05);
   time += dt;
 
-  // ── Carousel track: lerp suave hacia centeredOffset(currentIdx) ──
   if (appState === 'carousel' || appState === 'inserting') {
     const target = centeredOffset(currentIdx);
     trackOffset += (target - trackOffset) * 0.1;
     applyTrackTransform(trackOffset);
   }
 
-  // ── Escalar items ──
   updateScales();
 
   umdScenes.forEach((s, i) => {
     if (!s.mesh) return;
     const isCenter = i === currentIdx;
 
-    // ─ Lerp escala/opacidad/desplazamiento lateral del item DOM ─
-    // Se SALTA por completo mientras este item es el que se está
-    // insertando y seguimos fuera del carrusel (appState!=='carousel'),
-    // para que no vuelva a hacerse visible hasta volver atrás con
-    // goBack() (que resetea su estilo explícitamente).
     const isInsertingThisScene = insertingScene === s && appState !== 'carousel';
     if (!isInsertingThisScene) {
       s.scale      = s.scale      + ((s.targetScale      ?? 1) - s.scale)      * 0.1;
@@ -727,26 +707,23 @@ function animLoop() {
       s.item.style.opacity   = s.opacity.toString();
     }
 
-    // Con más de 3 juegos, los que quedan a dist>=2 están siempre a
-    // opacidad 0 (invisibles). Nos ahorramos animarlos y, sobre todo,
-    // el render() de Three.js — no aporta nada verlos si no se ven.
     const isHidden = s.opacity < 0.01 && (s.targetOpacity ?? 0) < 0.01;
     if (isHidden) return;
 
-    // ─ Rotación flotante normal ─
     const wobbleY = isCenter ? Math.sin(time * 0.7) * 0.07 : (i < currentIdx ? 0.1 : -0.1);
     const wobbleX = isCenter ? Math.sin(time * 0.45) * 0.04 : 0;
     s.mesh.rotation.y += (s.baseRotY + wobbleY - s.mesh.rotation.y) * 0.05;
     s.mesh.rotation.x += (s.baseRotX + wobbleX - s.mesh.rotation.x) * 0.05;
 
-    // Elevación flotante central
     if (isCenter) s.mesh.position.y = Math.sin(time * 1.4) * 0.07;
     else          s.mesh.position.y += (0 - s.mesh.position.y) * 0.05;
 
-    // ─ Render ─
+    // Solo redimensionar si el tamaño realmente cambió (evita reflows innecesarios)
     const w = s.item.clientWidth  || 280;
     const h = Math.max((s.item.clientHeight || 280) - 18, 80);
-    if (s.renderer.domElement.width !== Math.round(w * devicePixelRatio)) {
+    if (s.lastW !== w || s.lastH !== h) {
+      s.lastW = w;
+      s.lastH = h;
       s.renderer.setSize(w, h, false);
       s.camera.aspect = w / h;
       s.camera.updateProjectionMatrix();
@@ -754,25 +731,21 @@ function animLoop() {
     s.renderer.render(s.scene, s.camera);
   });
 
-  // ── Animación de inserción (glb) ──
   if (insertAnimPlaying && insertMixer) {
     insertMixer.update(dt);
     insertAnimRenderer.render(insertAnimScene, insertAnimCamera);
   }
 
-  // ── PSP ──
-  if (pspRenderer && pspModel) {
-    const cv = document.getElementById('psp-canvas');
-    const W = cv.clientWidth, H = cv.clientHeight;
+  if (pspRenderer && pspModel && DOM.pspCanvas) {
+    const W = DOM.pspCanvas.clientWidth;
+    const H = DOM.pspCanvas.clientHeight;
     if (W > 0 && H > 0) {
-      if (pspRenderer.domElement.width !== W || pspRenderer.domElement.height !== H) {
+      if (pspRenderer.domElement.width !== Math.round(W * devicePixelRatio)) {
         pspRenderer.setSize(W, H, false);
         pspCamera.aspect = W / H;
         pspCamera.updateProjectionMatrix();
       }
-      // PSP completamente estática y plana — sin rotación animada
       pspRenderer.render(pspScene, pspCamera);
-
     }
   }
 }
