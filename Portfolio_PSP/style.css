@@ -247,7 +247,7 @@ body {
 
 .sg-topbar{display:flex;align-items:center;justify-content:space-between;padding:6px 12px 5px;
   background:rgba(0,0,0,.7);border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
-.sg-time,.sg-console,.sg-battery{font-family:var(--retro);font-size:5.5px;color:rgba(255,255,255,.45);letter-spacing:1px}
+.sg-time,.sg-console,.sg-battery{font-family:var(--retro);font-size:10px;color:#fff;letter-spacing:1px}
 
 .sg-body{flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column}
 .sg-bg{
@@ -261,13 +261,13 @@ body {
 }
 .sg-content{position:relative;z-index:2;padding:14px 18px 12px;display:flex;flex-direction:column;height:100%;overflow-y:auto;scrollbar-width:none}
 .sg-content::-webkit-scrollbar{display:none}
-.sg-title{font-family:var(--retro);font-size:13px;color:#fff;line-height:1.4;margin-bottom:6px;text-shadow:0 1px 12px rgba(0,0,0,.9)}
-.sg-genre{font-family:var(--ui);font-size:10px;font-weight:700;letter-spacing:5px;text-transform:uppercase;margin-bottom:12px}
+.sg-title{font-family:var(--retro);font-size:24px;color:#fff;line-height:1.4;margin-bottom:6px;text-shadow:0 1px 12px rgba(0,0,0,.9)}
+.sg-genre{font-family:var(--ui);font-size:14px;font-weight:700;letter-spacing:5px;text-transform:uppercase;margin-bottom:12px}
 .sg-hr{height:1px;background:rgba(255,255,255,.1);margin-bottom:12px}
-.sg-desc{font-family:var(--ui);font-size:13px;line-height:1.75;color:rgba(255,255,255,.75);margin-bottom:14px;flex:1}
+.sg-desc{font-family:var(--ui);font-size:14px;line-height:1.75;color:rgba(255,255,255,.75);margin-bottom:14px;flex:1}
 .sg-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
-.sg-tag{font-family:var(--retro);font-size:5px;padding:3px 8px;border-radius:2px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px}
-.sg-year{font-family:var(--retro);font-size:5.5px;color:rgba(255,255,255,.2);letter-spacing:2px;margin-top:auto}
+.sg-tag{font-family:var(--retro);font-size:12px;padding:3px 8px;border-radius:2px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px}
+.sg-year{font-family:var(--retro);font-size:14px;color:#fff;letter-spacing:2px;margin-top:auto}
 
 .screen-glare{position:absolute;top:0;left:0;right:0;height:38%;background:linear-gradient(180deg,rgba(255,255,255,.06) 0%,transparent 100%);pointer-events:none;z-index:20}
 .screen-scanlines{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.05) 3px,rgba(0,0,0,.05) 4px);pointer-events:none;z-index:19}
