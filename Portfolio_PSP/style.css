@@ -5,12 +5,11 @@ body {
   margin: 0;
   padding: 0;
   width: 100vw;  
-  background-color: #ffffff; /* Color de fondo base */
-  /* Imagen anclada arriba y a ancho completo */
+  background-color: #ffffff;
   background-image: url('Imagenes/Fondo.webp'); 
   background-repeat: no-repeat;
-  background-size: 100% auto; /* Ajusta el ancho al 100%, altura proporcional */
-  background-position: center top; /* Pegada arriba y centrada horizontalmente */
+  background-size: 100% auto;
+  background-position: center top;
 }
 
 #bg-base, #bg {
@@ -23,18 +22,16 @@ body {
 #view-carousel{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;transition:opacity .4s,transform .4s}
 #view-carousel.hiding{opacity:0;transform:translateY(-20px);pointer-events:none}
 
-/* Header — sin fondo, el fondo global es suficiente */
 #header {
   display: flex;
   flex-direction: column;
-  align-items: center; /* Centra horizontalmente */
+  align-items: center;
   justify-content: center;
-  margin-top: 18px; /* Despega el texto de la parte superior */
+  margin-top: 18px;
   width: 100%;
   text-align: center;
   z-index: 10;
 }
-/* XINHAO XIA XIA */
 .header-name { 
   font-family: 'Pixelify Sans', sans-serif;
   font-size: 22px;
@@ -46,7 +43,6 @@ body {
   margin: 0 0 4px 0;
 }
 
-/* GAME DESIGNER */
 .header-title { 
   font-family: 'Pixelify Sans', sans-serif;
   font-size: 45px;
@@ -57,7 +53,6 @@ body {
   margin: 0 0 4px 0;
 }
 
-/* PORTFOLIO - 2026 */
 .header-sub { 
   font-family: 'Pixelify Sans', sans-serif;
   font-size: 16px;
@@ -69,7 +64,6 @@ body {
   margin: 0;
 }
 
-/* - selecciona un juego - */
 #label-select { 
   font-family: 'Pixelify Sans', sans-serif;
   font-size: 14px !important;
@@ -82,7 +76,6 @@ body {
   text-align: center;
 }
 
-/* GAME NAME */
 #game-name-display { 
   font-family: 'Pixelify Sans', sans-serif;
   font-size: 26px !important;
@@ -95,7 +88,6 @@ body {
   margin: 20px 0 5px 0;
 }
 
-/* ROGUELITE */
 #game-genre-display { 
   font-family: 'Abel', sans-serif; 
   font-size: 18px !important;
@@ -113,7 +105,7 @@ body {
 
 #game-name-display {
   font-family:var(--retro);
-  font-size:28px; /* Título grande */
+  font-size:28px;
   color:var(--dark);
   text-align:center;
   margin:15px 0 2px;
@@ -122,7 +114,7 @@ body {
 
 #game-genre-display {
   font-family:var(--ui);
-  font-size:12px; /* Género sutil y pequeño */
+  font-size:12px;
   font-weight:600;
   letter-spacing:2px !important;
   color:var(--mid);
@@ -144,8 +136,6 @@ body {
   border-radius: 6px;
   overflow: hidden;
   background: transparent;
-  
-  /* NUEVO: Espacio a los lados de cada disco (ajusta este número si quieres más o menos espacio) */
   margin: 0 50px; 
 }
 .umd-item{
@@ -203,18 +193,14 @@ body {
 #btn-insert:active  { transform: translateY(2px);  box-shadow: 0 2px 0 rgba(0,0,0,.4); }
 #btn-insert:focus   { outline: none; }
 
-/* Puntos de numeros de cartuchos */
 #dots-nav{display:flex;gap:8px;align-items:center}
-
 .nav-dot{width:8px;height:8px;border-radius:50%;background:var(--dot);cursor:pointer;transition:all .3s;border:none}
-
 .nav-dot.active{width:20px;height:8px;border-radius:4px;background:var(--dark)}
 
-/* ═══ PSP VIEW — mismo fondo que el carousel ═══ */
+/* ═══ PSP VIEW ═══ */
 #view-psp{
   position:fixed;inset:0;z-index:50;
   display:flex;align-items:center;justify-content:center;
-  /* Fondo transparente — se ve el mismo #bg-base y #bg debajo */
   background:transparent;
   transform:translateY(100%);
   transition:transform .4s cubic-bezier(.34,1.15,.64,1);
@@ -224,7 +210,6 @@ body {
 
 #psp-canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block;z-index:1}
 
-/* Pantalla PSP: tamaño fijo relativo al viewport, centrada */
 #psp-screen{
   position:relative;z-index:10;
   width:min(712px,58vw);
@@ -233,11 +218,9 @@ body {
   overflow:hidden;
   background:#000;
   display:flex;flex-direction:column;
-  /* Subir la pantalla un poco para alinearse con el bezel del modelo */
   margin-top:-5.5vh;
 }
 
-/* Idle */
 #screen-idle{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#050510;gap:10px}
 .screen-psp-logo{font-family:var(--retro);font-size:32px;color:#fff;letter-spacing:-1px}
 .screen-psp-sub {font-family:var(--retro);font-size:8px;letter-spacing:5px;color:rgba(255,255,255,.3)}
@@ -250,24 +233,6 @@ body {
 .sg-time,.sg-console,.sg-battery{font-family:var(--retro);font-size:10px;color:#fff;letter-spacing:1px}
 
 .sg-body{flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column}
-.sg-bg{
-  position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(135deg,var(--game-color,#1a3a6a) 0%,rgba(5,5,16,.97) 55%);
-}
-.sg-shine{
-  position:absolute;top:-30%;left:-10%;width:70%;height:120%;
-  background:radial-gradient(ellipse,rgba(255,255,255,.055) 0%,transparent 65%);
-  pointer-events:none;transform:rotate(-15deg);
-}
-.sg-content{position:relative;z-index:2;padding:14px 18px 12px;display:flex;flex-direction:column;height:100%;overflow-y:auto;scrollbar-width:none}
-.sg-content::-webkit-scrollbar{display:none}
-.sg-title{font-family:var(--retro);font-size:24px;color:#fff;line-height:1.4;margin-bottom:6px;text-shadow:0 1px 12px rgba(0,0,0,.9)}
-.sg-genre{font-family:var(--ui);font-size:14px;font-weight:700;letter-spacing:5px;text-transform:uppercase;margin-bottom:12px}
-.sg-hr{height:1px;background:rgba(255,255,255,.1);margin-bottom:12px}
-.sg-desc{font-family:var(--ui);font-size:14px;line-height:1.75;color:rgba(255,255,255,.75);margin-bottom:14px;flex:1}
-.sg-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
-.sg-tag{font-family:var(--retro);font-size:12px;padding:3px 8px;border-radius:2px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px}
-.sg-year{font-family:var(--retro);font-size:14px;color:#fff;letter-spacing:2px;margin-top:auto}
 
 .screen-glare{position:absolute;top:0;left:0;right:0;height:38%;background:linear-gradient(180deg,rgba(255,255,255,.06) 0%,transparent 100%);pointer-events:none;z-index:20}
 .screen-scanlines{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.05) 3px,rgba(0,0,0,.05) 4px);pointer-events:none;z-index:19}
@@ -276,7 +241,6 @@ body {
 @keyframes screenBoot{0%{background:#000}15%{background:#ddd}35%{background:#000}58%{background:#ddd}78%{background:#000}100%{background:transparent}}
 .screen-booting{animation:screenBoot .3s ease-in-out}
 
-/* Botón volver */
 #btn-back{
   position:fixed;bottom:24px;left:50%;
   transform:translateX(-50%);
@@ -295,7 +259,6 @@ body {
 #btn-back:active{transform:translateX(-50%) translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.4)}
 #btn-back:focus {outline:none}
 
-/* LOADING */
 #loading{position:fixed;inset:0;background:#f4f0e8;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;transition:opacity .8s}
 #loading.done{opacity:0;pointer-events:none}
 .load-logo{font-family:var(--retro);font-size:28px;color:var(--dark);margin-bottom:10px}
@@ -310,13 +273,6 @@ body {
   #psp-screen{width:92vw;margin-top:-4vh}
 }
 
-/* ═══════════════════════════════════════════════
-   OCULTAR TEXTOS AL INSERTAR EL CARTUCHO
-   - Los textos de arriba (header + "selecciona un
-     juego") se esconden hacia ARRIBA.
-   - El nombre/género del juego se esconden hacia
-     ABAJO, igual que #bottom-ui.
-═══════════════════════════════════════════════ */
 #header, #label-select{
   transition:opacity .3s, transform .35s cubic-bezier(.4,0,.2,1);
 }
@@ -324,7 +280,7 @@ body {
   opacity:0;
   transform:translateY(-40px);
   pointer-events:none;
-  animation:none; /* el "blink" de #label-select pisaba la transición y no dejaba que se ocultara del todo */
+  animation:none;
 }
 
 #game-name-display, #game-genre-display{
@@ -334,4 +290,198 @@ body {
   opacity:0;
   transform:translateY(40px);
   pointer-events:none;
+}
+
+/* ═══ FONDO RETRO AZUL — capa base, SIEMPRE detrás de todo ═══ */
+.sg-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 30%, #38bdf8 0%, #1d4ed8 55%, #0f172a 100%);
+  z-index: 1;
+}
+
+.sg-wave {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0.08) 2px,
+    transparent 2px,
+    transparent 12px
+  );
+  opacity: 0.9;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ═══ CAPA DE CONTENIDO Y SCROLL ═══ */
+.sg-content {
+  position: relative;
+  z-index: 5;
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+}
+
+.sg-content::-webkit-scrollbar {
+  display: none;
+}
+
+/* ═══ PORTADA — ahora vive DENTRO del scroll (no flota fija encima
+   de todo). Ocupa exactamente una pantalla completa, así el título
+   no se ve hasta que el usuario baja con la flecha; al hacer scroll
+   la imagen se desplaza fuera de vista y aparece el fondo azul
+   (.sg-bg) detrás de la tarjeta de info. ═══ */
+.sg-hero-spacer {
+  position: relative;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 12px 8px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.sg-hero-spacer::after{
+  content:'';
+  position:absolute;inset:0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.25) 0%,
+    rgba(0, 0, 0, 0.1) 40%,
+    rgba(0, 0, 0, 0.85) 100%
+  );
+  pointer-events:none;
+  z-index:0;
+}
+.sg-hero-spacer > * { position:relative; z-index:1; }
+
+.sg-title {
+  font-family: var(--retro);
+  font-size: 20px !important;
+  color: #ffffff;
+  line-height: 1.1;
+  margin-bottom: 2px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.8);
+}
+
+.sg-genre {
+  font-family: var(--ui);
+  font-size: 11px !important;
+  font-weight: 700;
+  letter-spacing: 2px !important;
+  color: #93c5fd !important;
+  text-transform: uppercase;
+  text-shadow: 0 2px 5px rgba(0,0,0,0.9);
+}
+
+/* TARJETA DE INFORMACIÓN — ahora se ve sobre el fondo azul (.sg-bg),
+   ya no sobre la imagen de portada */
+.sg-info-card {
+  position: relative;
+  z-index: 1;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 8px 12px 14px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.8);
+}
+
+.sg-desc {
+  font-family: var(--ui);
+  font-size: 11px !important;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 12px;
+}
+
+.sg-tags {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  width: 100%;
+}
+
+.sg-tag {
+  font-family: var(--retro);
+  font-size: 9px !important;
+  padding: 3px 7px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #e2e8f0;
+  text-transform: uppercase;
+}
+
+.sg-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.psp-act-btn {
+  flex: 1;
+  max-width: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--retro);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: #fff;
+  text-decoration: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.08) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  padding: 8px 10px;
+  border-radius: 4px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+  transition: all 0.2s ease;
+}
+
+.psp-act-btn:hover {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.18) 100%);
+  transform: translateY(-2px);
+}
+
+.psp-icon { font-size: 11px; font-weight: bold; }
+.icon-cross { color: #60a5fa; }
+.icon-triangle { color: #34d399; }
+
+/* FLECHA INTERACTIVA CON ANIMACIÓN IDLE */
+.sg-scroll-arrow {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  color: #ffffff;
+  font-size: 14px;
+  cursor: pointer;
+  pointer-events: auto;
+  padding: 6px 12px;
+  animation: floatBounce 1.4s ease-in-out infinite;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+  transition: opacity 0.3s ease, transform 0.2s ease;
+}
+
+.sg-scroll-arrow:hover {
+  color: #93c5fd;
+  transform: translateX(-50%) scale(1.2);
+}
+
+@keyframes floatBounce {
+  0%, 100% { transform: translate(-50%, 0); opacity: 0.5; }
+  50% { transform: translate(-50%, 6px); opacity: 1; }
 }

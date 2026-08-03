@@ -2,11 +2,66 @@
 
 /* ▼▼▼ EDITA TUS JUEGOS ▼▼▼ */
 const GAMES = [
-  { title:"Corazón de Guerra",  genre:"Plataforma y puzle",       year:"2024", desc:"Vive la aventura de Hermes, un jóven que se ve obligado a servir en el ejército como mensajero.Observa el deterioro de la guerra desde la perspectiva de un niño. Ayúdale a superar situaciones a través de su ingenio.", tags:["Construct 3","2D","Pixel Art","Narrativa","Guerra"],    discColor:"#5b4100", accentColor:"#b58200" },
-  { title:"Que no te Coma el Amor",     genre:"Narrativa y simulador de citas",            year:"2024", desc:"En este juego inspirado en la película Tesis, te pondrás en la piel de un estudiante de cine mientras intentas acercarte a Chema y Bosco. ¿Será un simple juego de citas, o hay algo más bajo la superficie?", tags:["Construct 3","Game Jam","Narrativa","Point and Click","Based Movie"],      discColor:"#4e0000", accentColor:"#b90000" },
-  { title:"Clashing Blocks",    genre:"Rompecabezas y plataformas", year:"2025", desc:"El mago Alexias protege sus cereales supremos. El caballero Pavel, hambriento, ha escalado la torre para robárselos. Un duelo absurdo donde el desayuno es el premio.", tags:["Unity","2D","Pixel Art","Plataforma","Cooperativo local"],         discColor:"#29003e", accentColor:"#8101c1" },
-  { title:"Rush Hour",       genre:"Juego de Lógica",         year:"2026", desc:"El objetivo principal del jugador es sacar un coche específico, a través de la única salida del tablero. Para lograrlo, el jugador deberá mover otros coches que bloquean el camino.", tags:["Unity","C#","2D","Lógica","Planificación"],              discColor:"#6a2300", accentColor:"#ed5001" },
-  { title:"Over Zhousands",        genre:"Gestión de Recursos y Tropas",         year:"2026", desc:"Over Zhousands es un juego de ambientación post apocalíptico de estilo cartoon, gestión de recursos y unidades donde controlas tu propia colonia de zombis. Construye tu propio aZentamiento para fortalecer a tu horda y atacar a los humanos supervivientes hasta dominar el territorio.", tags:["Unity","3D","Gestión","Zombis","Combate"],           discColor:"#0e4500", accentColor:"#1fb501" }
+  { 
+    title:"Corazón de Guerra",  
+    genre:"Plataforma y puzle",       
+    year:"2024", 
+    desc:"Vive la aventura de Hermes, un jóven que se ve obligado a servir en el ejército como mensajero. Observa el deterioro de la guerra desde la perspectiva de un niño.", 
+    tags:["Construct 3","2D","Pixel Art","Narrativa"],    
+    discColor:"#5b4100", 
+    accentColor:"#b58200",
+    cover: "cover/Corazon_cover.webp",
+    playUrl: "https://xiilastudio.itch.io/corazon-de-guerra",
+    gddUrl: "docs/GDD_Corazon.pdf"
+  },
+  { 
+    title:"Que no te Coma el Amor",     
+    genre:"Narrativa y simulador de citas",            
+    year:"2024", 
+    desc:"En este juego inspirado en la película Tesis, te pondrás en la piel de un estudiante de cine mientras intentas acercarte a Chema y Bosco.", 
+    tags:["Construct 3","Game Jam","Narrativa"],      
+    discColor:"#4e0000", 
+    accentColor:"#b90000",
+    cover: "cover/Amor_cover.webp",
+    playUrl: "https://axiada.itch.io/tesiscoma",
+    gddUrl: "docs/GDD_Amor.pdf"
+  },
+  { 
+    title:"Clashing Blocks",    
+    genre:"Rompecabezas y plataformas", 
+    year:"2025", 
+    desc:"El mago Alexias protege sus cereales supremos. El caballero Pavel, hambriento, ha escalado la torre para robárselos. Un duelo absurdo donde el desayuno es el premio.", 
+    tags:["Unity","2D","Pixel Art","Cooperativo local"],         
+    discColor:"#29003e", 
+    accentColor:"#8101c1",
+    cover: "cover/Clashing_cover.webp",
+    playUrl: "https://itch.io",
+    gddUrl: "docs/GDD_ClashingBlocks.pdf"
+  },
+  { 
+    title:"Rush Hour",       
+    genre:"Juego de Lógica",         
+    year:"2026", 
+    desc:"El objetivo principal del jugador es sacar un coche específico, a través de la única salida del tablero desplazando los coches que bloquean el camino.", 
+    tags:["Unity","C#","2D","Lógica"],              
+    discColor:"#6a2300", 
+    accentColor:"#ed5001",
+    cover: "cover/Rush_cover.webp",
+    playUrl: "https://itch.io",
+    gddUrl: "docs/GDD_RushHour.pdf"
+  },
+  { 
+    title:"Over Zhousands",        
+    genre:"Gestión de Recursos y Tropas",         
+    year:"2026", 
+    desc:"Juego post apocalíptico estilo cartoon donde controlas tu propia colonia de zombis. Construye tu aZentamiento para fortalecer tu horda.", 
+    tags:["Unity","3D","Gestión","Zombis"],           
+    discColor:"#0e4500", 
+    accentColor:"#1fb501",
+    cover: "cover/Over_cover.webp",
+    playUrl: "https://itch.io",
+    gddUrl: "docs/GDD_OverZhousands.pdf"
+  }
 ];
 /* ▲▲▲ FIN EDICIÓN ▲▲▲ */
 
@@ -76,6 +131,32 @@ function cacheDOM() {
   DOM.sgTags           = document.getElementById('sg-tags');
   DOM.sgTime           = document.getElementById('sg-time');
   DOM.sgBody           = document.querySelector('.sg-body');
+  DOM.sgBgImg          = document.getElementById('sg-bg-img');
+  DOM.btnPlay          = document.getElementById('sg-btn-play');
+  DOM.btnGdd           = document.getElementById('sg-btn-gdd');
+  DOM.sgContent        = document.getElementById('sg-content');
+  DOM.sgScrollArrow    = document.getElementById('sg-scroll-arrow');
+
+  // Clic en la flecha para hacer scroll automático hacia abajo
+  if (DOM.sgScrollArrow && DOM.sgContent) {
+    DOM.sgScrollArrow.addEventListener('click', () => {
+      DOM.sgContent.scrollTo({
+        top: DOM.sgContent.scrollHeight,
+        behavior: 'smooth'
+      });
+    });
+
+    // Ocultar la flecha automáticamente al deslizar
+    DOM.sgContent.addEventListener('scroll', () => {
+      if (DOM.sgContent.scrollTop > 20) {
+        DOM.sgScrollArrow.style.opacity = '0';
+        DOM.sgScrollArrow.style.pointerEvents = 'none';
+      } else {
+        DOM.sgScrollArrow.style.opacity = '1';
+        DOM.sgScrollArrow.style.pointerEvents = 'auto';
+      }
+    });
+  }
 }
 
 /* ═══ LOADING ═══ */
@@ -531,7 +612,7 @@ function goBack() {
   }, 700);
 }
 
-/* ═══ PSP 3D (AQUÍ ESTÁ LA SOLUCIÓN A LA LÍNEA VERTICAL) ═══ */
+/* ═══ PSP 3D ═══ */
 function buildPSP() {
   if (!DOM.pspCanvas) return;
   pspRenderer = new THREE.WebGLRenderer({ canvas: DOM.pspCanvas, antialias: true, alpha: true });
@@ -549,18 +630,17 @@ function buildPSP() {
 
   pspScene.add(new THREE.AmbientLight(0xffffff, 0.5));
 
-  // 🔧 LUZ PRINCIPAL Y CONFIGURACIÓN DE SOMBRAS CORREGIDA
   const kl = new THREE.DirectionalLight(0xffffff, 3.2); 
   kl.position.set(8, 14, 10); 
   kl.castShadow = true; 
-  kl.shadow.camera.left = -15;    // Ampliado para evitar la línea vertical a la izquierda
-  kl.shadow.camera.right = 15;   // Ampliado a la derecha
+  kl.shadow.camera.left = -15;
+  kl.shadow.camera.right = 15;
   kl.shadow.camera.top = 15;
   kl.shadow.camera.bottom = -15;
   kl.shadow.camera.near = 0.5;
   kl.shadow.camera.far = 30;
   kl.shadow.mapSize.set(2048, 2048);
-  kl.shadow.bias = -0.0005;       // Elimina artefactos y acné de sombra en la geometría
+  kl.shadow.bias = -0.0005;
   pspScene.add(kl);
 
   const fl = new THREE.DirectionalLight(0x8899ff, 0.7); fl.position.set(-10, 3, -6); pspScene.add(fl);
@@ -630,9 +710,21 @@ function bootScreen(game) {
 
     if (DOM.sgYear) DOM.sgYear.textContent = game.year;
     if (DOM.sgDesc) DOM.sgDesc.textContent = game.desc;
+
+    // Imagen de portada — se pone como fondo del div #sg-bg-img,
+    // que es el elemento que de verdad tiene el CSS de background-size:cover.
+    if (DOM.sgBgImg) {
+      const coverUrl = game.cover || game.bgImage || game.image || '';
+      DOM.sgBgImg.style.backgroundImage = coverUrl ? `url('${coverUrl}')` : 'none';
+    }
+
+    // Enlaces de acción
+    if (DOM.btnPlay) DOM.btnPlay.href = game.playUrl || '#';
+    if (DOM.btnGdd)  DOM.btnGdd.href  = game.gddUrl  || '#';
+
     if (DOM.sgTags) {
       DOM.sgTags.innerHTML = game.tags
-        .map(t => `<span class="sg-tag" style="border-color:${game.accentColor}33;color:${game.accentColor}cc">${t}</span>`)
+        .map(t => `<span class="sg-tag" style="border-color:${game.accentColor}44;color:${game.accentColor}">${t}</span>`)
         .join('');
     }
 
@@ -718,7 +810,6 @@ function animLoop() {
     if (isCenter) s.mesh.position.y = Math.sin(time * 1.4) * 0.07;
     else          s.mesh.position.y += (0 - s.mesh.position.y) * 0.05;
 
-    // Solo redimensionar si el tamaño realmente cambió (evita reflows innecesarios)
     const w = s.item.clientWidth  || 280;
     const h = Math.max((s.item.clientHeight || 280) - 18, 80);
     if (s.lastW !== w || s.lastH !== h) {

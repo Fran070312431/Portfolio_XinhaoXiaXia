@@ -36,10 +36,9 @@
         <button class="arr-btn" id="arr-left" aria-label="Anterior">
           <i class="fa-solid fa-arrow-left"></i>
         </button>
-        </button>        <div id="dots-nav"></div>
+        <div id="dots-nav"></div>
         <button class="arr-btn" id="arr-right" aria-label="Siguiente">
           <i class="fa-solid fa-arrow-right"></i>
-        </button>
         </button>
       </div>
       <button id="btn-insert">INSERTAR CARTUCHO</button>
@@ -56,19 +55,41 @@
       <div id="screen-game">
         <div class="sg-topbar">
           <span class="sg-time" id="sg-time">00:00</span>
-          <span class="sg-console">Portfolio Xinhao Xia Xia</span>
+          <span class="sg-console">PORTFOLIO XINHAO XIA XIA</span>
           <span class="sg-battery" id="sg-battery">■■■■□ 80%</span>
         </div>
+        
         <div class="sg-body">
-          <div class="sg-bg" id="sg-bg"></div>
-          <div class="sg-shine"></div>
-          <div class="sg-content">
-            <div class="sg-title" id="sg-title"></div>
-            <div class="sg-genre" id="sg-genre"></div>
-            <div class="sg-hr"></div>
-            <div class="sg-desc"  id="sg-desc"></div>
-            <div class="sg-tags"  id="sg-tags"></div>
-            <div class="sg-year"  id="sg-year"></div>
+          <!-- Capas de fondo retro (SIEMPRE detrás, fijas) -->
+          <div class="sg-bg"></div>
+          <div class="sg-wave"></div>
+
+          <!-- Contenido con Scroll: la portada ahora vive AQUÍ dentro,
+               como primer bloque, así se desplaza fuera de vista al
+               hacer scroll y deja ver el fondo azul detrás de la info -->
+          <div class="sg-content" id="sg-content">
+            <div id="sg-bg-img" class="sg-hero-spacer">
+              <h2 class="sg-title" id="sg-title"></h2>
+              <div class="sg-genre" id="sg-genre"></div>
+            </div>
+
+            <div class="sg-info-card" id="sg-info-card">
+              <p class="sg-desc" id="sg-desc"></p>
+              <div class="sg-tags" id="sg-tags"></div>
+              <div class="sg-actions">
+                <a id="sg-btn-play" href="#" target="_blank" class="psp-act-btn btn-play">
+                  <span class="psp-icon icon-cross">✖</span> JUGAR
+                </a>
+                <a id="sg-btn-gdd" href="#" target="_blank" class="psp-act-btn btn-gdd">
+                  <span class="psp-icon icon-triangle">▲</span> VER GDD
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Flecha flotante -->
+          <div class="sg-scroll-arrow" id="sg-scroll-arrow">
+            <i class="fa-solid fa-chevron-down"></i>
           </div>
         </div>
         <div class="screen-vignette"></div>
