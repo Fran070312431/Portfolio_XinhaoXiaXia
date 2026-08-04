@@ -296,7 +296,8 @@ body {
 .sg-bg {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 30%, #38bdf8 0%, #1d4ed8 55%, #0f172a 100%);
+  /* Un poco más oscuro/apagado que antes, para que la info se lea bien sin recuadro */
+  background: radial-gradient(circle at 50% 30%, #1c5f95 0%, #123061 55%, #070c17 100%);
   z-index: 1;
 }
 
@@ -305,8 +306,8 @@ body {
   inset: 0;
   background: repeating-linear-gradient(
     -45deg,
-    rgba(255, 255, 255, 0.08),
-    rgba(255, 255, 255, 0.08) 2px,
+    rgba(255, 255, 255, 0.06),
+    rgba(255, 255, 255, 0.06) 2px,
     transparent 2px,
     transparent 12px
   );
@@ -315,28 +316,24 @@ body {
   pointer-events: none;
 }
 
-/* ═══ CAPA DE CONTENIDO Y SCROLL ═══ */
+/* ═══ CONTENEDOR: dos "páginas" (cover / info) que se deslizan
+   solo mediante la flecha — nada de scroll libre con gesto ═══ */
 .sg-content {
   position: relative;
   z-index: 5;
   height: 100%;
-  overflow-y: auto;
-  scrollbar-width: none;
-  scroll-behavior: smooth;
+  overflow: hidden; /* el gesto de arrastre ya no hace nada */
 }
 
-.sg-content::-webkit-scrollbar {
-  display: none;
+/* Ambas páginas ocupan toda la pantalla, apiladas por transform */
+.sg-hero-spacer, .sg-info-page {
+  position: absolute;
+  inset: 0;
+  transition: transform .45s cubic-bezier(.4,0,.2,1);
 }
 
-/* ═══ PORTADA — ahora vive DENTRO del scroll (no flota fija encima
-   de todo). Ocupa exactamente una pantalla completa, así el título
-   no se ve hasta que el usuario baja con la flecha; al hacer scroll
-   la imagen se desplaza fuera de vista y aparece el fondo azul
-   (.sg-bg) detrás de la tarjeta de info. ═══ */
+/* Página 1: portada (visible por defecto) */
 .sg-hero-spacer {
-  position: relative;
-  min-height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -344,6 +341,7 @@ body {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  transform: translateY(0%);
 }
 .sg-hero-spacer::after{
   content:'';
@@ -361,7 +359,7 @@ body {
 
 .sg-title {
   font-family: var(--retro);
-  font-size: 20px !important;
+  font-size: 24px !important;
   color: #ffffff;
   line-height: 1.1;
   margin-bottom: 2px;
@@ -370,7 +368,7 @@ body {
 
 .sg-genre {
   font-family: var(--ui);
-  font-size: 11px !important;
+  font-size: 14px !important;
   font-weight: 700;
   letter-spacing: 2px !important;
   color: #93c5fd !important;
@@ -378,47 +376,90 @@ body {
   text-shadow: 0 2px 5px rgba(0,0,0,0.9);
 }
 
-/* TARJETA DE INFORMACIÓN — ahora se ve sobre el fondo azul (.sg-bg),
-   ya no sobre la imagen de portada */
-.sg-info-card {
-  position: relative;
-  z-index: 1;
-  background: rgba(15, 23, 42, 0.92);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  padding: 12px;
-  margin: 8px 12px 14px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.8);
+/* Página 2: info — SIN recuadro, el contenido va directo sobre el
+   fondo azul (.sg-bg). Título/género arriba-izquierda, descripción,
+   tags+fecha en medio, y los botones siempre pegados abajo del todo. */
+.sg-info-page{
+  transform: translateY(100%);
+  overflow-y: auto;           /* si el contenido no cabe, hace scroll SOLO aquí dentro */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 14px 14px;
+  margin-bottom: 18px; /* para que no se corte el scroll en iOS */
+}
+.sg-info-page::-webkit-scrollbar{ display:none; }
+
+/* Al pulsar la flecha se añade esta clase al contenedor */
+.sg-content.showing-info .sg-hero-spacer{ transform: translateY(-100%); }
+.sg-content.showing-info .sg-info-page{ transform: translateY(0%); }
+
+.sg-info-top{
+  text-align: left;
+  margin-bottom: 10px;
+}
+.sg-title-info{
+  font-family: var(--retro);
+  font-size: 18px;
+  color: #ffffff;
+  line-height: 1.15;
+  margin-bottom: 3px;
+}
+.sg-genre-info{
+  font-family: var(--ui);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #93c5fd;
+  text-transform: uppercase;
 }
 
 .sg-desc {
   font-family: var(--ui);
-  font-size: 11px !important;
-  line-height: 1.45;
-  color: rgba(255, 255, 255, 0.9);
+  font-size: 16px !important;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.88);
+  margin-bottom: 14px;
+}
+
+/* Fila con los tags a la izquierda y la fecha de lanzamiento, justo
+   encima de los botones */
+.sg-meta-row{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: auto;      /* empuja esta fila + los botones hacia abajo */
   margin-bottom: 12px;
 }
 
 .sg-tags {
   display: flex !important;
-  justify-content: center !important;
+  justify-content: flex-start !important;   /* a la izquierda, no centrados */
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
-  margin-bottom: 14px;
-  width: 100%;
 }
 
 .sg-tag {
   font-family: var(--retro);
-  font-size: 9px !important;
+  font-size: 12px !important;
   padding: 3px 7px;
   border-radius: 3px;
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.25);
   color: #e2e8f0;
   text-transform: uppercase;
+}
+
+.sg-year{
+  font-family: var(--retro);
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: rgba(255,255,255,.55);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .sg-actions {
@@ -479,6 +520,16 @@ body {
 .sg-scroll-arrow:hover {
   color: #93c5fd;
   transform: translateX(-50%) scale(1.2);
+}
+
+/* El icono de dentro rota 180° al pasar a la página de info,
+   sin pelearse con el translateX(-50%) de centrado del botón */
+.sg-scroll-arrow i{
+  display:inline-block;
+  transition: transform .35s cubic-bezier(.4,0,.2,1);
+}
+.sg-scroll-arrow.up i{
+  transform: rotate(180deg);
 }
 
 @keyframes floatBounce {

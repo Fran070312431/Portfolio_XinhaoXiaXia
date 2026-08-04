@@ -22,7 +22,7 @@ const GAMES = [
     tags:["Construct 3","Game Jam","Narrativa"],      
     discColor:"#4e0000", 
     accentColor:"#b90000",
-    cover: "cover/Amor_cover.webp",
+    cover: "cover/Coma_cover.webp",
     playUrl: "https://axiada.itch.io/tesiscoma",
     gddUrl: "docs/GDD_Amor.pdf"
   },
@@ -135,25 +135,20 @@ function cacheDOM() {
   DOM.btnPlay          = document.getElementById('sg-btn-play');
   DOM.btnGdd           = document.getElementById('sg-btn-gdd');
   DOM.sgContent        = document.getElementById('sg-content');
+  DOM.sgInfoPage       = document.getElementById('sg-info-page');
   DOM.sgScrollArrow    = document.getElementById('sg-scroll-arrow');
+  DOM.sgScrollArrowIcon= document.getElementById('sg-scroll-arrow-icon');
 
-  // Clic en la flecha para hacer scroll automático hacia abajo
+  // La flecha es el ÚNICO control para pasar de la portada a la info
+  // y viceversa — no hay scroll libre. Alterna la clase 'showing-info'
+  // en #sg-content (el CSS se encarga de deslizar ambas páginas) y
+  // voltea el icono de la flecha (↓ = ir a la info, ↑ = volver a portada).
   if (DOM.sgScrollArrow && DOM.sgContent) {
     DOM.sgScrollArrow.addEventListener('click', () => {
-      DOM.sgContent.scrollTo({
-        top: DOM.sgContent.scrollHeight,
-        behavior: 'smooth'
-      });
-    });
-
-    // Ocultar la flecha automáticamente al deslizar
-    DOM.sgContent.addEventListener('scroll', () => {
-      if (DOM.sgContent.scrollTop > 20) {
-        DOM.sgScrollArrow.style.opacity = '0';
-        DOM.sgScrollArrow.style.pointerEvents = 'none';
-      } else {
-        DOM.sgScrollArrow.style.opacity = '1';
-        DOM.sgScrollArrow.style.pointerEvents = 'auto';
+      const showingInfo = DOM.sgContent.classList.toggle('showing-info');
+      if (DOM.sgScrollArrowIcon) {
+        DOM.sgScrollArrowIcon.classList.toggle('fa-chevron-down', !showingInfo);
+        DOM.sgScrollArrowIcon.classList.toggle('fa-chevron-up', showingInfo);
       }
     });
   }
@@ -690,6 +685,13 @@ function makeFallbackPSP() {
 /* ═══ PANTALLA ═══ */
 function bootScreen(game) {
   if (DOM.sgBody) DOM.sgBody.scrollTop = 0;
+
+  // Siempre arrancar mostrando la portada, no la info de la vez anterior
+  if (DOM.sgContent) DOM.sgContent.classList.remove('showing-info');
+  if (DOM.sgScrollArrowIcon) {
+    DOM.sgScrollArrowIcon.classList.add('fa-chevron-down');
+    DOM.sgScrollArrowIcon.classList.remove('fa-chevron-up');
+  }
 
   if (DOM.screenIdle) DOM.screenIdle.style.display = 'flex';
   if (DOM.screenGame) DOM.screenGame.classList.remove('active');
