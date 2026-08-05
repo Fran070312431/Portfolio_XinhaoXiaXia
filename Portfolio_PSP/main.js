@@ -35,7 +35,7 @@ const GAMES = [
     discColor:"#29003e", 
     accentColor:"#8101c1",
     cover: "cover/Clashing_cover.webp",
-    playUrl: "https://itch.io",
+    playUrl: "https://clashing-blocks.itch.io/clashing-blocks",
     gddUrl: "docs/GDD_ClashingBlocks.pdf"
   },
   { 
@@ -59,7 +59,7 @@ const GAMES = [
     discColor:"#0e4500", 
     accentColor:"#1fb501",
     cover: "cover/Over_cover.webp",
-    playUrl: "https://itch.io",
+    playUrl: "https://sickgecko.itch.io/over-zhousands",
     gddUrl: "docs/GDD_OverZhousands.pdf"
   }
 ];
@@ -708,6 +708,15 @@ function bootScreen(game) {
     if (DOM.sgGenre) {
       DOM.sgGenre.textContent = game.genre;
       DOM.sgGenre.style.color = game.accentColor;
+    }
+
+    // También rellenar título y género en la página de info
+    const titleInfo = document.getElementById('sg-title-info');
+    const genreInfo = document.getElementById('sg-genre-info');
+    if (titleInfo) titleInfo.textContent = game.title;
+    if (genreInfo) {
+      genreInfo.textContent = game.genre;
+      genreInfo.style.color = game.accentColor;
     }
 
     if (DOM.sgYear) DOM.sgYear.textContent = game.year;

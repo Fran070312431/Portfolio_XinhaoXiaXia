@@ -1,6 +1,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Abel&display=swap');
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--dark:#252525;--mid:#6a6258;--light:#9a9288;--dot:#a5a5a5;--retro:'Pixelify Sans',monospace;--ui:'Abel',sans-serif}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --dark: #252525;
+  --mid: #6a6258;
+  --light: #9a9288;
+  --dot: #a5a5a5;
+  --retro: 'Pixelify Sans', monospace;
+  --ui: 'Abel', sans-serif;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -16,11 +30,32 @@ body {
   display: none; 
 }
 
-#app{position:relative;z-index:2;width:100%;height:100vh;display:flex;flex-direction:column;align-items:center;overflow:hidden}
+#app {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
 
-/* ═══ CAROUSEL ═══ */
-#view-carousel{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;transition:opacity .4s,transform .4s}
-#view-carousel.hiding{opacity:0;transform:translateY(-20px);pointer-events:none}
+/* ═══ CARRUSEL: HEADER Y DISPLAY ═══ */
+#view-carousel {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: opacity .4s, transform .4s;
+}
+
+#view-carousel.hiding {
+  opacity: 0;
+  transform: translateY(-20px);
+  pointer-events: none;
+}
 
 #header {
   display: flex;
@@ -31,12 +66,20 @@ body {
   width: 100%;
   text-align: center;
   z-index: 10;
+  transition: opacity .3s, transform .35s cubic-bezier(.4, 0, .2, 1);
 }
+
+#header.hiding {
+  opacity: 0;
+  transform: translateY(-40px);
+  pointer-events: none;
+}
+
 .header-name { 
-  font-family: 'Pixelify Sans', sans-serif;
+  font-family: var(--retro);
   font-size: 22px;
   font-weight: 500;
-  color: #252525;
+  color: var(--dark);
   letter-spacing: 1px;
   line-height: 1;
   text-transform: uppercase;
@@ -44,115 +87,155 @@ body {
 }
 
 .header-title { 
-  font-family: 'Pixelify Sans', sans-serif;
+  font-family: var(--retro);
   font-size: 45px;
   font-weight: 500;
-  color: #252525;
+  color: var(--dark);
   line-height: 1.1;
   text-transform: uppercase;
   margin: 0 0 4px 0;
 }
 
 .header-sub { 
-  font-family: 'Pixelify Sans', sans-serif;
+  font-family: var(--retro);
   font-size: 16px;
   font-weight: 700;
-  color: #252525;
-  letter-spacing: 3px !important;
+  color: var(--dark);
+  letter-spacing: 3px;
   line-height: 0.4;
   text-transform: uppercase;
   margin: 0;
 }
 
 #label-select { 
-  font-family: 'Pixelify Sans', sans-serif;
-  font-size: 14px !important;
+  font-family: var(--retro);
+  font-size: 13px;
   font-weight: 500;
-  color: #a5a5a5;
-  letter-spacing: 4px !important;
+  color: var(--light);
+  letter-spacing: 3px;
   line-height: 1;
   text-transform: lowercase;
-  margin-top: 40px; 
+  margin-top: 30px; 
   text-align: center;
+  animation: blink 2.5s ease-in-out infinite;
+  transition: opacity .3s, transform .35s cubic-bezier(.4, 0, .2, 1);
 }
 
+#label-select.hiding {
+  opacity: 0;
+  transform: translateY(-40px);
+  pointer-events: none;
+  animation: none;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .3; }
+}
+
+/* --- TÍTULO Y GÉNERO DEL CARRUSEL --- */
 #game-name-display { 
-  font-family: 'Pixelify Sans', sans-serif;
-  font-size: 26px !important;
+  font-family: var(--retro);
+  font-size: 28px; /* << CAMBIA AQUÍ EL TAMAÑO DEL TÍTULO EN EL CARRUSEL */
   font-weight: 500;
-  color: #252525;
+  color: var(--dark);
   letter-spacing: 1px;
   line-height: 1.2;
   text-transform: uppercase;
   text-align: center;
-  margin: 20px 0 5px 0;
+  margin: 15px 0 5px 0;
+  min-height: 34px;
+  transition: opacity .25s, transform .3s cubic-bezier(.4, 0, .2, 1);
 }
 
 #game-genre-display { 
-  font-family: 'Abel', sans-serif; 
-  font-size: 18px !important;
-  font-weight: 600 !important;
-  color: #a5a5a5;
-  letter-spacing: 0px;
+  font-family: var(--ui); 
+  font-size: 14px; /* << CAMBIA AQUÍ EL TAMAÑO DEL GÉNERO EN EL CARRUSEL */
+  font-weight: 600;
+  color: var(--mid);
+  letter-spacing: 2px;
   line-height: 1;
   text-transform: uppercase;
   text-align: center;
   margin: 0 0 15px 0;
+  min-height: 20px;
+  transition: opacity .25s, transform .3s cubic-bezier(.4, 0, .2, 1);
 }
 
-#label-select{font-family:var(--retro);font-size:11px;letter-spacing:3px;color:var(--light);text-align:center;margin:15px 0 0;animation:blink 2.5s ease-in-out infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-
-#game-name-display {
-  font-family:var(--retro);
-  font-size:28px;
-  color:var(--dark);
-  text-align:center;
-  margin:15px 0 2px;
-  min-height:34px;
+#game-name-display.hiding, 
+#game-genre-display.hiding {
+  opacity: 0;
+  transform: translateY(40px);
+  pointer-events: none;
 }
 
-#game-genre-display {
-  font-family:var(--ui);
-  font-size:12px;
-  font-weight:600;
-  letter-spacing:2px !important;
-  color:var(--mid);
-  text-align:center;
-  text-transform:uppercase;
-  min-height:20px;
+/* ═══ CARRUSEL 3D / TRACK ═══ */
+#carousel-outer {
+  width: 100%;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  margin-top: 4px;
+  perspective: 1200px;
 }
 
-#carousel-outer{
-  width:100%;flex:1;overflow:hidden;position:relative;margin-top:4px;
-  perspective:1200px;
+#carousel-track {
+  display: flex;
+  align-items: center;
+  padding: 50px 0;
+  will-change: transform;
 }
-#carousel-track{display:flex;align-items:center;padding:50px 0;will-change:transform}
 
 .umd-item {
   position: relative;
-  width: 280px !important;
-  height: 280px !important;
+  flex-shrink: 0;
+  width: 280px;
+  height: 280px;
   border-radius: 6px;
   overflow: hidden;
   background: transparent;
   margin: 0 50px; 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
 }
-.umd-item{
-  flex-shrink:0;width:280px;
-  display:flex;flex-direction:column;align-items:center;
-  cursor:pointer;
+
+.umd-canvas {
+  width: 280px !important;
+  height: 280px !important;
+  display: block;
 }
-.umd-canvas{width:280px!important;height:280px!important;display:block}
-.umd-shadow{width:140px;height:14px;background:radial-gradient(ellipse,rgba(0,0,0,.12) 0%,transparent 70%);margin-top:-8px}
 
-#bottom-ui{display:flex;flex-direction:column;align-items:center;
-  transition:opacity .25s,transform .3s cubic-bezier(.4,0,.2,1)}
-#bottom-ui.hiding{opacity:0;transform:translateY(70px);pointer-events:none}
+.umd-shadow {
+  width: 140px;
+  height: 14px;
+  background: radial-gradient(ellipse, rgba(0,0,0,.12) 0%, transparent 70%);
+  margin-top: -8px;
+}
 
-#carousel-nav{display:flex;gap:12px;align-items:center;justify-content:center;margin:8px 0 6px}
+/* ═══ UI INFERIOR / BOTONES ═══ */
+#bottom-ui {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: opacity .25s, transform .3s cubic-bezier(.4, 0, .2, 1);
+}
 
-/* ── FLECHAS — igual que btn-back ── */
+#bottom-ui.hiding {
+  opacity: 0;
+  transform: translateY(70px);
+  pointer-events: none;
+}
+
+#carousel-nav {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  margin: 8px 0 6px;
+}
+
 .arr-btn {
   font-family: var(--retro);
   font-size: 11px;
@@ -168,11 +251,10 @@ body {
   transition: box-shadow .12s, transform .12s;
   line-height: 1;
 }
+
 .arr-btn:hover  { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,.4); }
 .arr-btn:active { transform: translateY(2px);  box-shadow: 0 2px 0 rgba(0,0,0,.4); }
-.arr-btn:focus  { outline: none; }
 
-/* ── INSERTAR — igual que btn-back ── */
 #btn-insert {
   font-family: var(--retro);
   font-size: 13px;
@@ -188,115 +270,198 @@ body {
   transition: box-shadow .12s, transform .12s;
   margin: 4px 0 16px;
 }
+
 #btn-insert::before { content: '▶ '; font-size: 10px; }
 #btn-insert:hover   { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,.4); }
 #btn-insert:active  { transform: translateY(2px);  box-shadow: 0 2px 0 rgba(0,0,0,.4); }
-#btn-insert:focus   { outline: none; }
 
-#dots-nav{display:flex;gap:8px;align-items:center}
-.nav-dot{width:8px;height:8px;border-radius:50%;background:var(--dot);cursor:pointer;transition:all .3s;border:none}
-.nav-dot.active{width:20px;height:8px;border-radius:4px;background:var(--dark)}
-
-/* ═══ PSP VIEW ═══ */
-#view-psp{
-  position:fixed;inset:0;z-index:50;
-  display:flex;align-items:center;justify-content:center;
-  background:transparent;
-  transform:translateY(100%);
-  transition:transform .4s cubic-bezier(.34,1.15,.64,1);
-  pointer-events:none;
-}
-#view-psp.visible{transform:translateY(0);pointer-events:auto}
-
-#psp-canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block;z-index:1}
-
-#psp-screen{
-  position:relative;z-index:10;
-  width:min(712px,58vw);
-  aspect-ratio:480/295;
-  border-radius:3px;
-  overflow:hidden;
-  background:#000;
-  display:flex;flex-direction:column;
-  margin-top:-5.5vh;
+#dots-nav {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
-#screen-idle{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#050510;gap:10px}
-.screen-psp-logo{font-family:var(--retro);font-size:32px;color:#fff;letter-spacing:-1px}
-.screen-psp-sub {font-family:var(--retro);font-size:8px;letter-spacing:5px;color:rgba(255,255,255,.3)}
-
-#screen-game{width:100%;height:100%;display:none;flex-direction:column;position:relative;background:#000}
-#screen-game.active{display:flex}
-
-.sg-topbar{display:flex;align-items:center;justify-content:space-between;padding:6px 12px 5px;
-  background:rgba(0,0,0,.7);border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
-.sg-time,.sg-console,.sg-battery{font-family:var(--retro);font-size:10px;color:#fff;letter-spacing:1px}
-
-.sg-body{flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column}
-
-.screen-glare{position:absolute;top:0;left:0;right:0;height:38%;background:linear-gradient(180deg,rgba(255,255,255,.06) 0%,transparent 100%);pointer-events:none;z-index:20}
-.screen-scanlines{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.05) 3px,rgba(0,0,0,.05) 4px);pointer-events:none;z-index:19}
-.screen-vignette{position:absolute;inset:0;pointer-events:none;z-index:18;background:radial-gradient(ellipse 88% 82% at 50% 50%,transparent 50%,rgba(0,0,0,.55) 100%)}
-
-@keyframes screenBoot{0%{background:#000}15%{background:#ddd}35%{background:#000}58%{background:#ddd}78%{background:#000}100%{background:transparent}}
-.screen-booting{animation:screenBoot .3s ease-in-out}
-
-#btn-back{
-  position:fixed;bottom:24px;left:50%;
-  transform:translateX(-50%);
-  z-index:60;
-  font-family:var(--retro);font-size:13px;letter-spacing:2px;
-  color:#fff;background:var(--dark);
-  border:none;border-radius:4px;padding:11px 26px;cursor:pointer;outline:none;
-  backdrop-filter:blur(10px);
-  box-shadow:0 4px 0 rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.4);
-  opacity:0;pointer-events:none;
-  transition:opacity .35s,box-shadow .12s,transform .12s;
-}
-#btn-back.visible{opacity:1;pointer-events:auto}
-#btn-back::before{content:'◀ ';font-size:10px}
-#btn-back:hover {transform:translateX(-50%) translateY(-2px);box-shadow:0 6px 0 rgba(0,0,0,.4);background:var(--dark)}
-#btn-back:active{transform:translateX(-50%) translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.4)}
-#btn-back:focus {outline:none}
-
-#loading{position:fixed;inset:0;background:#f4f0e8;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;transition:opacity .8s}
-#loading.done{opacity:0;pointer-events:none}
-.load-logo{font-family:var(--retro);font-size:28px;color:var(--dark);margin-bottom:10px}
-.load-sub {font-family:var(--retro);font-size:7px;letter-spacing:3px;color:var(--mid);margin-bottom:28px}
-.load-bar-wrap{width:160px;height:3px;background:var(--dot);border-radius:2px;overflow:hidden}
-.load-bar{height:100%;background:var(--dark);border-radius:2px;width:0%;transition:width .3s}
-
-@media(max-width:700px){
-  .header-title{font-size:14px}
-  .umd-item{width:200px}
-  .umd-canvas{width:200px!important;height:200px!important}
-  #psp-screen{width:92vw;margin-top:-4vh}
+.nav-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--dot);
+  cursor: pointer;
+  transition: all .3s;
+  border: none;
 }
 
-#header, #label-select{
-  transition:opacity .3s, transform .35s cubic-bezier(.4,0,.2,1);
-}
-#header.hiding, #label-select.hiding{
-  opacity:0;
-  transform:translateY(-40px);
-  pointer-events:none;
-  animation:none;
+.nav-dot.active {
+  width: 20px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--dark);
 }
 
-#game-name-display, #game-genre-display{
-  transition:opacity .25s, transform .3s cubic-bezier(.4,0,.2,1);
-}
-#game-name-display.hiding, #game-genre-display.hiding{
-  opacity:0;
-  transform:translateY(40px);
-  pointer-events:none;
+/* ═══ VISTA PSP 3D ═══ */
+#view-psp {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  transform: translateY(100%);
+  transition: transform .4s cubic-bezier(.34, 1.15, .64, 1);
+  pointer-events: none;
 }
 
-/* ═══ FONDO RETRO AZUL — capa base, SIEMPRE detrás de todo ═══ */
+#view-psp.visible {
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+#psp-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  z-index: 1;
+}
+
+#psp-screen {
+  position: relative;
+  z-index: 10;
+  width: min(712px, 58vw);
+  aspect-ratio: 480 / 295;
+  border-radius: 3px;
+  overflow: hidden;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  margin-top: -5.5vh;
+}
+
+#screen-idle {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #050510;
+  gap: 10px;
+}
+
+.screen-psp-logo { font-family: var(--retro); font-size: 32px; color: #fff; letter-spacing: -1px; }
+.screen-psp-sub  { font-family: var(--retro); font-size: 8px; letter-spacing: 5px; color: rgba(255,255,255,.3); }
+
+#screen-game {
+  width: 100%;
+  height: 100%;
+  display: none;
+  flex-direction: column;
+  position: relative;
+  background: #000;
+}
+
+#screen-game.active { display: flex; }
+
+.sg-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px 5px;
+  background: rgba(0, 0, 0, .7);
+  border-bottom: 1px solid rgba(255, 255, 255, .06);
+  flex-shrink: 0;
+}
+
+.sg-time, .sg-console, .sg-battery {
+  font-family: var(--retro);
+  font-size: 10px;
+  color: #fff;
+  letter-spacing: 1px;
+}
+
+.sg-body {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.screen-glare {
+  position: absolute; top: 0; left: 0; right: 0; height: 38%;
+  background: linear-gradient(180deg, rgba(255,255,255,.06) 0%, transparent 100%);
+  pointer-events: none; z-index: 20;
+}
+
+.screen-scanlines {
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,.05) 3px, rgba(0,0,0,.05) 4px);
+  pointer-events: none; z-index: 19;
+}
+
+.screen-vignette {
+  position: absolute; inset: 0; pointer-events: none; z-index: 18;
+  background: radial-gradient(ellipse 88% 82% at 50% 50%, transparent 50%, rgba(0,0,0,.55) 100%);
+}
+
+@keyframes screenBoot {
+  0% { background: #000; }
+  15% { background: #ddd; }
+  35% { background: #000; }
+  58% { background: #ddd; }
+  78% { background: #000; }
+  100% { background: transparent; }
+}
+
+.screen-booting { animation: screenBoot .3s ease-in-out; }
+
+#btn-back {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  font-family: var(--retro);
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: #fff;
+  background: var(--dark);
+  border: none;
+  border-radius: 4px;
+  padding: 11px 26px;
+  cursor: pointer;
+  outline: none;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 0 rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .35s, box-shadow .12s, transform .12s;
+}
+
+#btn-back.visible { opacity: 1; pointer-events: auto; }
+#btn-back::before { content: '◀ '; font-size: 10px; }
+#btn-back:hover   { transform: translateX(-50%) translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,.4); }
+#btn-back:active  { transform: translateX(-50%) translateY(2px);  box-shadow: 0 2px 0 rgba(0,0,0,.4); }
+
+/* ═══ PANTALLA DE CARGA ═══ */
+#loading {
+  position: fixed; inset: 0;
+  background: #f4f0e8;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 999; transition: opacity .8s;
+}
+#loading.done { opacity: 0; pointer-events: none; }
+.load-logo { font-family: var(--retro); font-size: 28px; color: var(--dark); margin-bottom: 10px; }
+.load-sub  { font-family: var(--retro); font-size: 7px; letter-spacing: 3px; color: var(--mid); margin-bottom: 28px; }
+.load-bar-wrap { width: 160px; height: 3px; background: var(--dot); border-radius: 2px; overflow: hidden; }
+.load-bar { height: 100%; background: var(--dark); border-radius: 2px; width: 0%; transition: width .3s; }
+
+/* ═══ FONDO DE LA PSP Y CONTENIDO ═══ */
 .sg-bg {
   position: absolute;
   inset: 0;
-  /* Un poco más oscuro/apagado que antes, para que la info se lea bien sin recuadro */
   background: radial-gradient(circle at 50% 30%, #1c5f95 0%, #123061 55%, #070c17 100%);
   z-index: 1;
 }
@@ -316,23 +481,20 @@ body {
   pointer-events: none;
 }
 
-/* ═══ CONTENEDOR: dos "páginas" (cover / info) que se deslizan
-   solo mediante la flecha — nada de scroll libre con gesto ═══ */
 .sg-content {
   position: relative;
   z-index: 5;
   height: 100%;
-  overflow: hidden; /* el gesto de arrastre ya no hace nada */
+  overflow: hidden;
 }
 
-/* Ambas páginas ocupan toda la pantalla, apiladas por transform */
 .sg-hero-spacer, .sg-info-page {
   position: absolute;
   inset: 0;
-  transition: transform .45s cubic-bezier(.4,0,.2,1);
+  transition: transform .45s cubic-bezier(.4, 0, .2, 1);
 }
 
-/* Página 1: portada (visible por defecto) */
+/* --- PORTADA PSP --- */
 .sg-hero-spacer {
   display: flex;
   flex-direction: column;
@@ -343,72 +505,54 @@ body {
   background-repeat: no-repeat;
   transform: translateY(0%);
 }
-.sg-hero-spacer::after{
-  content:'';
-  position:absolute;inset:0;
+
+.sg-hero-spacer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
   background: linear-gradient(
     180deg,
     rgba(0, 0, 0, 0.25) 0%,
     rgba(0, 0, 0, 0.1) 40%,
     rgba(0, 0, 0, 0.85) 100%
   );
-  pointer-events:none;
-  z-index:0;
-}
-.sg-hero-spacer > * { position:relative; z-index:1; }
-
-.sg-title {
-  font-family: var(--retro);
-  font-size: 24px !important;
-  color: #ffffff;
-  line-height: 1.1;
-  margin-bottom: 2px;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.8);
+  pointer-events: none;
+  z-index: 0;
 }
 
-.sg-genre {
-  font-family: var(--ui);
-  font-size: 14px !important;
-  font-weight: 700;
-  letter-spacing: 2px !important;
-  color: #93c5fd !important;
-  text-transform: uppercase;
-  text-shadow: 0 2px 5px rgba(0,0,0,0.9);
-}
-
-/* Página 2: info — SIN recuadro, el contenido va directo sobre el
-   fondo azul (.sg-bg). Título/género arriba-izquierda, descripción,
-   tags+fecha en medio, y los botones siempre pegados abajo del todo. */
-.sg-info-page{
+/* --- PÁGINA INFO PSP --- */
+.sg-info-page {
   transform: translateY(100%);
-  overflow-y: auto;           /* si el contenido no cabe, hace scroll SOLO aquí dentro */
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   display: flex;
   flex-direction: column;
   padding: 16px 14px 14px;
-  margin-bottom: 18px; /* para que no se corte el scroll en iOS */
+  margin-bottom: 18px;
 }
-.sg-info-page::-webkit-scrollbar{ display:none; }
 
-/* Al pulsar la flecha se añade esta clase al contenedor */
-.sg-content.showing-info .sg-hero-spacer{ transform: translateY(-100%); }
-.sg-content.showing-info .sg-info-page{ transform: translateY(0%); }
+.sg-info-page::-webkit-scrollbar { display: none; }
 
-.sg-info-top{
+.sg-content.showing-info .sg-hero-spacer { transform: translateY(-100%); }
+.sg-content.showing-info .sg-info-page  { transform: translateY(0%); }
+
+.sg-info-top {
   text-align: left;
   margin-bottom: 10px;
 }
-.sg-title-info{
+
+.sg-title-info {
   font-family: var(--retro);
-  font-size: 18px;
+  font-size: 24px; /* << TÍTULO INFO PSP */
   color: #ffffff;
   line-height: 1.15;
   margin-bottom: 3px;
 }
-.sg-genre-info{
+
+.sg-genre-info {
   font-family: var(--ui);
-  font-size: 12px;
+  font-size: 14px; /* << GÉNERO INFO PSP */
   font-weight: 700;
   letter-spacing: 2px;
   color: #93c5fd;
@@ -417,26 +561,24 @@ body {
 
 .sg-desc {
   font-family: var(--ui);
-  font-size: 16px !important;
+  font-size: 16px;
   line-height: 1.55;
   color: rgba(255, 255, 255, 0.88);
   margin-bottom: 14px;
 }
 
-/* Fila con los tags a la izquierda y la fecha de lanzamiento, justo
-   encima de los botones */
-.sg-meta-row{
+.sg-meta-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-top: auto;      /* empuja esta fila + los botones hacia abajo */
+  margin-top: auto;
   margin-bottom: 12px;
 }
 
 .sg-tags {
-  display: flex !important;
-  justify-content: flex-start !important;   /* a la izquierda, no centrados */
+  display: flex;
+  justify-content: flex-start;
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
@@ -444,7 +586,7 @@ body {
 
 .sg-tag {
   font-family: var(--retro);
-  font-size: 12px !important;
+  font-size: 12px;
   padding: 3px 7px;
   border-radius: 3px;
   background: rgba(255, 255, 255, 0.12);
@@ -453,11 +595,11 @@ body {
   text-transform: uppercase;
 }
 
-.sg-year{
+.sg-year {
   font-family: var(--retro);
   font-size: 14px;
   letter-spacing: 1px;
-  color: rgba(255,255,255,.55);
+  color: rgba(255, 255, 255, .55);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -500,7 +642,6 @@ body {
 .icon-cross { color: #60a5fa; }
 .icon-triangle { color: #34d399; }
 
-/* FLECHA INTERACTIVA CON ANIMACIÓN IDLE */
 .sg-scroll-arrow {
   position: absolute;
   bottom: 8px;
@@ -514,7 +655,7 @@ body {
   padding: 6px 12px;
   animation: floatBounce 1.4s ease-in-out infinite;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
-  transition: opacity 0.3s ease, transform 0.2s ease;
+  transition: color 0.3s ease, transform 0.2s ease;
 }
 
 .sg-scroll-arrow:hover {
@@ -522,17 +663,20 @@ body {
   transform: translateX(-50%) scale(1.2);
 }
 
-/* El icono de dentro rota 180° al pasar a la página de info,
-   sin pelearse con el translateX(-50%) de centrado del botón */
-.sg-scroll-arrow i{
-  display:inline-block;
-  transition: transform .35s cubic-bezier(.4,0,.2,1);
-}
-.sg-scroll-arrow.up i{
-  transform: rotate(180deg);
+.sg-scroll-arrow i {
+  display: inline-block;
+  transition: transform .35s cubic-bezier(.4, 0, .2, 1);
 }
 
 @keyframes floatBounce {
   0%, 100% { transform: translate(-50%, 0); opacity: 0.5; }
   50% { transform: translate(-50%, 6px); opacity: 1; }
+}
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 700px) {
+  .header-title { font-size: 28px; }
+  .umd-item { width: 200px; height: 200px !important; }
+  .umd-canvas { width: 200px !important; height: 200px !important; }
+  #psp-screen { width: 92vw; margin-top: -4vh; }
 }
