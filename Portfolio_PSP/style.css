@@ -102,7 +102,7 @@ body {
   font-weight: 700;
   color: var(--dark);
   letter-spacing: 3px;
-  line-height: 0.4;
+  line-height: 0.5;
   text-transform: uppercase;
   margin: 0;
 }
@@ -115,7 +115,7 @@ body {
   letter-spacing: 3px;
   line-height: 1;
   text-transform: lowercase;
-  margin-top: 30px; 
+  margin-top: 15px; 
   text-align: center;
   animation: blink 2.5s ease-in-out infinite;
   transition: opacity .3s, transform .35s cubic-bezier(.4, 0, .2, 1);
@@ -158,7 +158,7 @@ body {
   text-transform: uppercase;
   text-align: center;
   margin: 0 0 15px 0;
-  min-height: 20px;
+  min-height: 25px;
   transition: opacity .25s, transform .3s cubic-bezier(.4, 0, .2, 1);
 }
 
@@ -673,10 +673,230 @@ body {
   50% { transform: translate(-50%, 6px); opacity: 1; }
 }
 
+/* ═══════════════════════════════════════════════
+   BOTÓN DE CONTENIDO EXTRA (arte, modelado 3D...)
+   Fijo en el lateral derecho, mismo estilo que el
+   resto de botones del sitio.
+═══════════════════════════════════════════════ */
+#btn-extras {
+  position: fixed;
+  right: 24px;
+  top: 24px;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: var(--dark);
+  border: none;
+  border-radius: 8px;
+  width: 46px;
+  height: 46px;
+  cursor: pointer;
+  outline: none;
+  box-shadow: 0 4px 0 rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.4);
+  transition: transform .12s , box-shadow .12s;
+}
+#btn-extras i { font-size: 20px; }
+#btn-extras:hover  { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,.4); }
+#btn-extras:active { transform: translateY(2px);  box-shadow: 0 2px 0 rgba(0,0,0,.4); }
+#btn-extras.hiding {
+  opacity: 0;
+  transform: translateY(-40px);
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════
+   TRANSICIÓN CIRCULAR ("iris") entre el carrusel y
+   la vista de extras. El círculo crece con steps()
+   en vez de una curva suave, para que se note el
+   crecimiento a "saltos" tipo pixel art, y usa un
+   degradado radial en vez de un color plano.
+═══════════════════════════════════════════════ */
+#circle-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  pointer-events: none;
+  overflow: hidden;
+}
+#circle-fill {
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--dark) 25%, #000 80%);
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform .5s steps(9, end);
+  will-change: transform;
+}
+#circle-fill.expand {
+  /* 60x deja el círculo bastante más grande que la diagonal de
+     cualquier pantalla habitual, cubriéndola por completo */
+  transform: translate(-50%, -50%) scale(60);
+}
+
+/* ═══════════════════════════════════════════════
+   PÁGINA extra.html — interfaz estilo XMB de PSP
+═══════════════════════════════════════════════ */
+
+/* Botón de volver — icono de "cartucho" (disco UMD), no texto.
+   Mismo estilo que el resto de botones del sitio. */
+#btn-back-extra {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  color: #fff;
+  background: var(--dark);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  outline: none;
+  box-shadow: 0 4px 0 rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.4);
+  transition: transform .12s, box-shadow .12s;
+}
+#btn-back-extra i { font-size: 20px; }
+#btn-back-extra:hover  { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,.4); }
+#btn-back-extra:active { transform: translateY(2px);  box-shadow: 0 2px 0 rgba(0,0,0,.4); }
+
+/* Cabecera de la página, igual que el resto del sitio */
+.xmb-header {
+  text-align: center;
+  padding-top: 26px;
+}
+
+/* Envoltorio de la interfaz XMB — ocupa el resto de la pantalla */
+.xmb-wrap {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 40px 110px 90px; /* deja hueco a la izquierda y abajo para las barras */
+}
+
+/* ── Barra vertical de categorías (izquierda, NO pegada al borde) ── */
+.xmb-sidebar {
+  position: absolute;
+  left: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 5;
+}
+
+.xmb-cat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 150px;
+  padding: 12px 14px;
+  background: rgba(255,255,255,.85);
+  border: 2px solid var(--dark);
+  border-radius: 6px;
+  font-family: var(--retro);
+  font-size: 10px;
+  letter-spacing: .5px;
+  color: var(--dark);
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 3px 0 rgba(0,0,0,.15);
+  transition: transform .12s, background .15s, box-shadow .12s;
+}
+.xmb-cat i { font-size: 16px; flex-shrink: 0; }
+.xmb-cat:hover { transform: translateX(3px); }
+.xmb-cat.active {
+  background: var(--dark);
+  color: #fff;
+  box-shadow: 0 3px 0 rgba(0,0,0,.35);
+}
+
+/* ── Barra horizontal de contenido (abajo, NO pegada al borde) ── */
+.xmb-content-bar {
+  position: absolute;
+  left: 90px;
+  right: 40px;
+  bottom: 30px;
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 4px 4px 10px;
+  scrollbar-width: thin;
+}
+
+.xmb-item {
+  flex: 0 0 auto;
+  width: 170px;
+  height: 110px;
+  border-radius: 6px;
+  background: #fff;
+  border: 2px solid var(--dark);
+  box-shadow: 0 4px 0 rgba(0,0,0,.18);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--retro);
+  font-size: 10px;
+  color: var(--dark);
+  text-align: center;
+  padding: 8px;
+  cursor: pointer;
+  transition: transform .12s;
+}
+.xmb-item i { font-size: 24px; color: var(--mid); }
+.xmb-item:hover { transform: translateY(-4px); }
+
+/* Título grande de la categoría activa, centrado en el hueco central */
+.xmb-cat-title {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  text-align: center;
+  font-family: var(--retro);
+  font-size: 34px;
+  color: var(--dark);
+  text-transform: uppercase;
+}
+.xmb-cat-sub {
+  text-align: center;
+  font-family: var(--ui);
+  font-size: 14px;
+  color: var(--mid);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+@media (max-width: 800px) {
+  .xmb-wrap { padding: 0 16px 100px 16px; flex-direction: column; }
+  .xmb-sidebar {
+    position: static;
+    transform: none;
+    flex-direction: row;
+    overflow-x: auto;
+    width: 100%;
+    margin-bottom: 16px;
+  }
+  .xmb-cat { width: auto; white-space: nowrap; }
+  .xmb-content-bar { left: 16px; right: 16px; }
+}
+
 /* ═══ RESPONSIVE ═══ */
 @media (max-width: 700px) {
   .header-title { font-size: 28px; }
   .umd-item { width: 200px; height: 200px !important; }
   .umd-canvas { width: 200px !important; height: 200px !important; }
   #psp-screen { width: 92vw; margin-top: -4vh; }
+  #btn-extras { right: 10px; width: 40px; height: 40px; }
 }

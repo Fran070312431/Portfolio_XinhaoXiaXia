@@ -126,6 +126,8 @@ function cacheDOM() {
   DOM.pspScreen        = document.getElementById('psp-screen');
   DOM.sgTitle          = document.getElementById('sg-title');
   DOM.sgGenre          = document.getElementById('sg-genre');
+  DOM.sgTitleInfo      = document.getElementById('sg-title-info');
+  DOM.sgGenreInfo      = document.getElementById('sg-genre-info');
   DOM.sgYear           = document.getElementById('sg-year');
   DOM.sgDesc           = document.getElementById('sg-desc');
   DOM.sgTags           = document.getElementById('sg-tags');
@@ -138,6 +140,9 @@ function cacheDOM() {
   DOM.sgInfoPage       = document.getElementById('sg-info-page');
   DOM.sgScrollArrow    = document.getElementById('sg-scroll-arrow');
   DOM.sgScrollArrowIcon= document.getElementById('sg-scroll-arrow-icon');
+
+  DOM.btnExtras        = document.getElementById('btn-extras');
+  DOM.circleFill       = document.getElementById('circle-fill');
 
   // La flecha es el ÚNICO control para pasar de la portada a la info
   // y viceversa — no hay scroll libre. Alterna la clase 'showing-info'
@@ -152,6 +157,57 @@ function cacheDOM() {
       }
     });
   }
+
+  // Botón de contenido extra: la pantalla se tapa con el círculo y,
+  // ya tapada del todo, navegamos de verdad a extra.html (página aparte).
+  if (DOM.btnExtras) {
+    DOM.btnExtras.addEventListener('click', () => {
+      if (appState !== 'carousel') return;
+      playCircleWipe(DOM.btnExtras, () => {
+        window.location.href = 'extra.html';
+      }, /* shrinkBack */ false);
+    });
+  }
+}
+
+/**
+ * Transición tipo "iris": un círculo crece desde el botón que se
+ * pulsó hasta tapar toda la pantalla (con pasos, no suave, para dar
+ * sensación pixel/retro). Cuando la pantalla queda ya tapada del
+ * todo, se ejecuta onCovered().
+ *
+ * - shrinkBack = true  (por defecto): tras onCovered(), el círculo
+ *   se encoge de vuelta a 0, revelando lo nuevo EN LA MISMA página.
+ * - shrinkBack = false: se queda tapado — se usa justo antes de
+ *   navegar a otra página (extra.html), donde esa página arranca
+ *   ya "tapada" y hace ella misma la animación de destape (ver
+ *   extra.html) para que la transición se sienta continua.
+ */
+function playCircleWipe(originEl, onCovered, shrinkBack = true) {
+  if (!DOM.circleFill) { onCovered(); return; }
+
+  const rect = originEl.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  DOM.circleFill.style.left = cx + 'px';
+  DOM.circleFill.style.top  = cy + 'px';
+
+  // Aseguramos que arranca en 0 (por si venimos de una transición anterior)
+  DOM.circleFill.classList.remove('expand');
+  void DOM.circleFill.offsetWidth; // fuerza reflow para reiniciar la transición
+
+  const onExpandEnd = () => {
+    DOM.circleFill.removeEventListener('transitionend', onExpandEnd);
+    onCovered();
+    if (shrinkBack) {
+      // Pequeña pausa con la pantalla tapada del todo antes de destapar
+      setTimeout(() => {
+        DOM.circleFill.classList.remove('expand');
+      }, 100);
+    }
+  };
+  DOM.circleFill.addEventListener('transitionend', onExpandEnd);
+  requestAnimationFrame(() => DOM.circleFill.classList.add('expand'));
 }
 
 /* ═══ LOADING ═══ */
@@ -560,6 +616,7 @@ function startInsert() {
   if (DOM.labelSelect)      DOM.labelSelect.classList.add('hiding');
   if (DOM.gameNameDisplay)  DOM.gameNameDisplay.classList.add('hiding');
   if (DOM.gameGenreDisplay) DOM.gameGenreDisplay.classList.add('hiding');
+  if (DOM.btnExtras)        DOM.btnExtras.classList.add('hiding');
 
   insertingScene = umdScenes[currentIdx];
 
@@ -600,6 +657,7 @@ function goBack() {
     if (DOM.labelSelect)      DOM.labelSelect.classList.remove('hiding');
     if (DOM.gameNameDisplay)  DOM.gameNameDisplay.classList.remove('hiding');
     if (DOM.gameGenreDisplay) DOM.gameGenreDisplay.classList.remove('hiding');
+    if (DOM.btnExtras)        DOM.btnExtras.classList.remove('hiding');
     if (DOM.viewCarousel)     DOM.viewCarousel.classList.remove('hiding');
 
     updateLabels(); updateDots();
@@ -710,13 +768,11 @@ function bootScreen(game) {
       DOM.sgGenre.style.color = game.accentColor;
     }
 
-    // También rellenar título y género en la página de info
-    const titleInfo = document.getElementById('sg-title-info');
-    const genreInfo = document.getElementById('sg-genre-info');
-    if (titleInfo) titleInfo.textContent = game.title;
-    if (genreInfo) {
-      genreInfo.textContent = game.genre;
-      genreInfo.style.color = game.accentColor;
+    // Título y género en la página de info (no en la portada)
+    if (DOM.sgTitleInfo) DOM.sgTitleInfo.textContent = game.title;
+    if (DOM.sgGenreInfo) {
+      DOM.sgGenreInfo.textContent = game.genre;
+      DOM.sgGenreInfo.style.color = game.accentColor;
     }
 
     if (DOM.sgYear) DOM.sgYear.textContent = game.year;
