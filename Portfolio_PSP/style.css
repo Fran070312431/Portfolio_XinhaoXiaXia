@@ -682,7 +682,7 @@ body {
   position: fixed;
   right: 24px;
   top: 24px;
-  z-index: 60;
+  z-index: 30;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -695,9 +695,9 @@ body {
   cursor: pointer;
   outline: none;
   box-shadow: 0 4px 0 rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.4);
-  transition: transform .12s , box-shadow .12s;
+  transition: opacity .3s, transform .3s cubic-bezier(.4,0,.2,1), box-shadow .12s;
 }
-#btn-extras i { font-size: 20px; }
+#btn-extras i { font-size: 18px; }
 #btn-extras:hover  { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,.4); }
 #btn-extras:active { transform: translateY(2px);  box-shadow: 0 2px 0 rgba(0,0,0,.4); }
 #btn-extras.hiding {
@@ -722,18 +722,20 @@ body {
 }
 #circle-fill {
   position: absolute;
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--dark) 25%, #000 80%);
+  width: 60px;
+  height: 60px;
+  border-radius: 0; /* la forma "redonda" la da el clip-path pixelado, no border-radius */
+  background: radial-gradient(circle, var(--dark) 55%, #000 100%);
+  clip-path: polygon(0% 35%, 5% 35%, 5% 25%, 10% 25%, 10% 15%, 15% 15%, 15% 10%, 20% 10%, 20% 10%, 25% 10%, 25% 5%, 30% 5%, 30% 5%, 35% 5%, 35% 0%, 40% 0%, 40% 0%, 45% 0%, 45% 0%, 50% 0%, 50% 0%, 55% 0%, 55% 0%, 60% 0%, 60% 0%, 65% 0%, 65% 5%, 70% 5%, 70% 5%, 75% 5%, 75% 10%, 80% 10%, 80% 10%, 85% 10%, 85% 15%, 90% 15%, 90% 25%, 95% 25%, 95% 35%, 100% 35%, 100% 65%, 95% 65%, 95% 75%, 90% 75%, 90% 85%, 85% 85%, 85% 90%, 80% 90%, 80% 90%, 75% 90%, 75% 95%, 70% 95%, 70% 95%, 65% 95%, 65% 100%, 60% 100%, 60% 100%, 55% 100%, 55% 100%, 50% 100%, 50% 100%, 45% 100%, 45% 100%, 40% 100%, 40% 100%, 35% 100%, 35% 95%, 30% 95%, 30% 95%, 25% 95%, 25% 90%, 20% 90%, 20% 90%, 15% 90%, 15% 85%, 10% 85%, 10% 75%, 5% 75%, 5% 65%, 0% 65%);
   transform: translate(-50%, -50%) scale(0);
-  transition: transform .5s steps(9, end);
+  transition: transform .5s cubic-bezier(.22,.61,.36,1);
   will-change: transform;
 }
 #circle-fill.expand {
-  /* 60x deja el círculo bastante más grande que la diagonal de
-     cualquier pantalla habitual, cubriéndola por completo */
-  transform: translate(-50%, -50%) scale(60);
+  /* el factor de escala lo pone el JS (playCircleWipe / extra.js),
+     calculado a partir del tamaño real de pantalla para cubrirla
+     siempre entera, sea cual sea el tamaño de ventana */
+  transform: translate(-50%, -50%) scale(var(--circle-scale, 60));
 }
 
 /* ═══════════════════════════════════════════════
@@ -745,7 +747,7 @@ body {
 #btn-back-extra {
   position: fixed;
   top: 24px;
-  left: 24px;
+  right: 24px;
   z-index: 60;
   display: flex;
   align-items: center;
@@ -858,6 +860,15 @@ body {
 .xmb-item:hover { transform: translateY(-4px); }
 
 /* Título grande de la categoría activa, centrado en el hueco central */
+.xmb-title-wrap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
 .xmb-cat-title {
   position: relative;
   z-index: 1;
@@ -900,3 +911,98 @@ body {
   #psp-screen { width: 92vw; margin-top: -4vh; }
   #btn-extras { right: 10px; width: 40px; height: 40px; }
 }
+
+/* ═══════════════════════════════════════════════
+   AÑADIR AL FINAL DE style.css
+   Animaciones de transición XMB para extra.html
+═══════════════════════════════════════════════ */
+
+/* ── Animación salida del contenido ── */
+.slide-out-left  { animation: slideOutLeft  .2s ease-in forwards; }
+.slide-out-right { animation: slideOutRight .2s ease-in forwards; }
+
+@keyframes slideOutLeft {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-32px); }
+}
+@keyframes slideOutRight {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(32px); }
+}
+
+/* ── Animación entrada del contenido ── */
+.slide-in-left  {
+  opacity: 0;
+  transform: translateX(-32px);
+  transition: opacity .25s ease-out, transform .25s ease-out;
+}
+.slide-in-right {
+  opacity: 0;
+  transform: translateX(32px);
+  transition: opacity .25s ease-out, transform .25s ease-out;
+}
+.slide-settled {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ── Fade del título de categoría ── */
+.fade-out {
+  animation: xmbFadeOut .18s ease forwards;
+}
+.fade-in {
+  animation: xmbFadeIn .22s ease forwards;
+}
+
+@keyframes xmbFadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-8px); }
+}
+@keyframes xmbFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Items activos ── */
+.xmb-item.active {
+  background: var(--dark);
+  color: #fff;
+  border-color: var(--dark);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 0 rgba(0,0,0,.25);
+}
+.xmb-item.active i { color: #fff; }
+
+/* ── Label bajo item ── */
+.xmb-item-label {
+  font-family: var(--retro);
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--dark);
+  text-align: center;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+.xmb-item.active .xmb-item-label { color: #fff; }
+
+/* ── Thumbnail dentro del item ── */
+.xmb-item-thumb {
+  width: 100%;
+  flex: 1;
+  border-radius: 3px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.04);
+}
+.xmb-item-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.xmb-item-icon i {
+  font-size: 28px;
+  color: var(--mid);
+}
+.xmb-item.active .xmb-item-icon i { color: rgba(255,255,255,0.7); }
