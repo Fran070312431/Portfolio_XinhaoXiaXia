@@ -680,24 +680,24 @@ body {
 ═══════════════════════════════════════════════ */
 #btn-extras {
   position: fixed;
-  right: 24px;
   top: 24px;
-  z-index: 30;
+  right: 24px;
+  z-index: 60;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 46px;
+  height: 46px;
   color: #fff;
   background: var(--dark);
   border: none;
   border-radius: 8px;
-  width: 46px;
-  height: 46px;
   cursor: pointer;
   outline: none;
   box-shadow: 0 4px 0 rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.4);
-  transition: opacity .3s, transform .3s cubic-bezier(.4,0,.2,1), box-shadow .12s;
+  transition: transform .12s, box-shadow .12s;
 }
-#btn-extras i { font-size: 18px; }
+#btn-extras img { width: 30px; height: 30px; pointer-events: none; }
 #btn-extras:hover  { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,.4); }
 #btn-extras:active { transform: translateY(2px);  box-shadow: 0 2px 0 rgba(0,0,0,.4); }
 #btn-extras.hiding {
@@ -763,7 +763,7 @@ body {
   box-shadow: 0 4px 0 rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.4);
   transition: transform .12s, box-shadow .12s;
 }
-#btn-back-extra i { font-size: 20px; }
+#btn-back-extra img { width: 30px; height: 30px; pointer-events: none; }
 #btn-back-extra:hover  { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,.4); }
 #btn-back-extra:active { transform: translateY(2px);  box-shadow: 0 2px 0 rgba(0,0,0,.4); }
 
