@@ -11,6 +11,8 @@ const GAMES = [
     discColor:"#5b4100", 
     accentColor:"#b58200",
     cover: "cover/Corazon_cover.webp",
+    discModel: "models/Corazon_de_guerra.glb",
+    animModel: "models/Corazon_de_guerra_anim.glb",
     playUrl: "https://xiilastudio.itch.io/corazon-de-guerra",
     gddUrl: "docs/GDD_Corazon.pdf"
   },
@@ -23,6 +25,8 @@ const GAMES = [
     discColor:"#4e0000", 
     accentColor:"#b90000",
     cover: "cover/Coma_cover.webp",
+    discModel: "models/Que_no_te_coma_el_amor.glb",
+    animModel: "models/Que_no_te_coma_el_amor_anim.glb",
     playUrl: "https://axiada.itch.io/tesiscoma",
     gddUrl: "docs/GDD_Amor.pdf"
   },
@@ -35,6 +39,8 @@ const GAMES = [
     discColor:"#29003e", 
     accentColor:"#8101c1",
     cover: "cover/Clashing_cover.webp",
+    discModel: "models/Clashing_blocks.glb",
+    animModel: "models/Clashing_blocks_anim.glb",
     playUrl: "https://clashing-blocks.itch.io/clashing-blocks",
     gddUrl: "docs/GDD_ClashingBlocks.pdf"
   },
@@ -47,6 +53,8 @@ const GAMES = [
     discColor:"#6a2300", 
     accentColor:"#ed5001",
     cover: "cover/Rush_cover.webp",
+    discModel: "models/Rush_hour.glb",
+    animModel: "models/Rush_hour_anim.glb",
     playUrl: "https://itch.io",
     gddUrl: "docs/GDD_RushHour.pdf"
   },
@@ -59,6 +67,8 @@ const GAMES = [
     discColor:"#0e4500", 
     accentColor:"#1fb501",
     cover: "cover/Over_cover.webp",
+    discModel: "models/Over_zhousands.glb",
+    animModel: "models/Over_zhousands_anim.glb",
     playUrl: "https://sickgecko.itch.io/over-zhousands",
     gddUrl: "docs/GDD_OverZhousands.pdf"
   }
@@ -83,7 +93,7 @@ let currentIdx  = 0;
 let trackOffset = 0;        
 let appState    = 'carousel';
 let umdScenes   = [];
-let umdTemplate = null;
+let umdTemplates = [];
 let pspGLTF     = null;
 let pspRenderer = null, pspScene = null, pspCamera = null, pspModel = null;
 let modelsReady = 0;
@@ -93,14 +103,9 @@ let clockTimer  = null;
 let insertingScene = null;  
 
 /* inserción — animación real vía Blender (.glb + AnimationMixer) */
-let insertAnimGLTF     = null;
-let insertAnimCanvas   = null;
-let insertAnimRenderer = null;
-let insertAnimScene    = null;
-let insertAnimCamera   = null;
-let insertMixer        = null;
-let insertAction       = null;
-let insertAnimReady    = false;
+let insertAnimGLTFs    = [];
+let insertAnimData     = [];
+let activeInsertAnim   = null;
 let insertAnimPlaying  = false;
 
 /* ═══ CACHÉ DOM ═══ */
@@ -220,24 +225,32 @@ const fakeTimer = setInterval(() => {
 function modelLoaded() {
   modelsReady++;
   if (DOM.loadBar) DOM.loadBar.style.width = (80 + modelsReady * 7) + '%';
-  if (modelsReady >= 3) {
+  if (modelsReady >= TOTAL_MODELS) {
     clearInterval(fakeTimer);
     if (DOM.loadBar) DOM.loadBar.style.width = '100%';
+    setupInsertAnimScenes();
     setTimeout(init, 350);
   }
 }
 
 /* ═══ GLTF LOADER ═══ */
 const gltfLoader = new THREE.GLTFLoader();
+
+const TOTAL_MODELS = 1 + (GAMES.length * 2);
+
 gltfLoader.load('models/sony_psp.glb',
   g => { pspGLTF = g; modelLoaded(); }, undefined,
   () => { pspGLTF = null; modelLoaded(); });
-gltfLoader.load('models/psp_umd.glb',
-  g => { umdTemplate = g.scene; modelLoaded(); }, undefined,
-  () => { umdTemplate = null; modelLoaded(); });
-gltfLoader.load('models/insert_anim.glb',
-  g => { insertAnimGLTF = g; setupInsertAnimScene(); modelLoaded(); }, undefined,
-  () => { insertAnimGLTF = null; modelLoaded(); });
+
+GAMES.forEach((game, i) => {
+  gltfLoader.load(game.discModel,
+    g => { umdTemplates[i] = g.scene; modelLoaded(); }, undefined,
+    () => { umdTemplates[i] = null; modelLoaded(); });
+
+  gltfLoader.load(game.animModel,
+    g => { insertAnimGLTFs[i] = g; modelLoaded(); }, undefined,
+    () => { insertAnimGLTFs[i] = null; modelLoaded(); });
+});
 
 /* ═══ SONIDO ═══ */
 function playPSPSound() {
@@ -330,8 +343,9 @@ function buildCarousel() {
     glowLight.position.set(0, 0, 3); scene.add(glowLight);
 
     let mesh;
-    if (umdTemplate) {
-      mesh = umdTemplate.clone();
+    const gameUmdTemplate = umdTemplates[i];
+    if (gameUmdTemplate) {
+      mesh = gameUmdTemplate.clone();
 
       const box0  = new THREE.Box3().setFromObject(mesh);
       const size0 = box0.getSize(new THREE.Vector3());
@@ -392,14 +406,14 @@ function buildCarousel() {
       const box1    = new THREE.Box3().setFromObject(mesh);
       const center1 = box1.getCenter(new THREE.Vector3());
       mesh.position.sub(center1);
-
       const col = new THREE.Color(game.discColor);
       mesh.traverse(n => {
-        if (n.isMesh) {
-          const m = n.material.clone();
-          m.color.lerp(col, 0.4);
-          n.material = m;
-        }
+          if (n.isMesh) {
+              const m = n.material.clone();
+              m.color.lerp(col, 0.2);
+
+              n.material = m;
+          }
       });
 
     } else {
@@ -500,8 +514,8 @@ function updateScales() {
 
   umdScenes.forEach((s, i) => {
     const dist = Math.abs(i - currentIdx);
-    const targetScale   = dist===0 ? 1.18 : dist===1 ? 1 : 0.9;
-    const targetOpacity = dist===0 ? 1    : dist===1 ? 0.9 : 0;
+    const targetScale   = dist===0 ? 1.2 : dist===1 ? 1.05 : 0.95;
+    const targetOpacity = dist===0 ? 1    : dist===1 ? 0.8 : 0;
     s.targetScale   = targetScale;
     s.targetOpacity = targetOpacity;
 
@@ -514,57 +528,74 @@ function updateScales() {
   });
 }
 
-/* ═══ SETUP INSERT ANIM ═══ */
-function setupInsertAnimScene() {
-  if (!insertAnimGLTF) return;
+/* ═══ SETUP INSERT ANIM — una animación distinta por juego ═══ */
+function setupInsertAnimScenes() {
+  insertAnimData = [];
 
-  insertAnimCanvas = document.createElement('canvas');
-  insertAnimCanvas.id = 'insert-anim-canvas';
-  Object.assign(insertAnimCanvas.style, {
-    position: 'fixed',
-    left: '0px', top: '0px', width: '0px', height: '0px',
-    pointerEvents: 'none',
-    zIndex: '40',
-    opacity: '0',
+  GAMES.forEach((game, i) => {
+    const gltf = insertAnimGLTFs[i];
+    if (!gltf) {
+      insertAnimData[i] = null;
+      return;
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.id = `insert-anim-canvas-${i}`;
+    Object.assign(canvas.style, {
+      position: 'fixed',
+      left: '0px', top: '0px', width: '0px', height: '0px',
+      pointerEvents: 'none',
+      zIndex: '40',
+      opacity: '0',
+    });
+    document.body.appendChild(canvas);
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setClearColor(0, 0);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.35;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 60);
+    camera.position.set(0, 0, 8);
+    camera.lookAt(0, 0, 0);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const kl = new THREE.DirectionalLight(0xffffff, 2.2);
+    kl.position.set(5, 8, 7);
+    scene.add(kl);
+    const fl = new THREE.DirectionalLight(0x99aaff, 0.5);
+    fl.position.set(-5, -2, 4);
+    scene.add(fl);
+
+    const root = gltf.scene;
+    root.scale.setScalar(INSERT_ANIM_SCALE);
+    root.position.set(INSERT_ANIM_OFFSET[0], INSERT_ANIM_OFFSET[1], INSERT_ANIM_OFFSET[2]);
+    scene.add(root);
+
+    const mixer = new THREE.AnimationMixer(root);
+    const clip = gltf.animations && gltf.animations[0];
+    const action = clip ? mixer.clipAction(clip) : null;
+
+    if (action) {
+      action.setLoop(THREE.LoopOnce, 1);
+      action.clampWhenFinished = true;
+    }
+
+    insertAnimData[i] = { canvas, renderer, scene, camera, mixer, action };
   });
-  document.body.appendChild(insertAnimCanvas);
-
-  insertAnimRenderer = new THREE.WebGLRenderer({ canvas: insertAnimCanvas, antialias: true, alpha: true });
-  insertAnimRenderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  insertAnimRenderer.setClearColor(0, 0);
-  insertAnimRenderer.toneMapping = THREE.ACESFilmicToneMapping;
-  insertAnimRenderer.toneMappingExposure = 1.35;
-
-  insertAnimScene  = new THREE.Scene();
-  insertAnimCamera = new THREE.PerspectiveCamera(38, 1, 0.1, 60);
-  insertAnimCamera.position.set(0, 0, 8);
-  insertAnimCamera.lookAt(0, 0, 0);
-
-  insertAnimScene.add(new THREE.AmbientLight(0xffffff, 0.6));
-  const kl = new THREE.DirectionalLight(0xffffff, 2.2); kl.position.set(5, 8, 7); insertAnimScene.add(kl);
-  const fl = new THREE.DirectionalLight(0x99aaff, 0.5); fl.position.set(-5, -2, 4); insertAnimScene.add(fl);
-
-  const root = insertAnimGLTF.scene;
-  root.scale.setScalar(INSERT_ANIM_SCALE);
-  root.position.set(INSERT_ANIM_OFFSET[0], INSERT_ANIM_OFFSET[1], INSERT_ANIM_OFFSET[2]);
-  insertAnimScene.add(root);
-
-  insertMixer = new THREE.AnimationMixer(root);
-  const clip = insertAnimGLTF.animations && insertAnimGLTF.animations[0];
-  if (clip) {
-    insertAction = insertMixer.clipAction(clip);
-    insertAction.setLoop(THREE.LoopOnce, 1);
-    insertAction.clampWhenFinished = true;
-  }
-  insertAnimReady = true;
 }
 
 function playInsertAnimation(scene, onDone) {
-  if (!insertAnimReady || !insertAction) {
+  const data = insertAnimData[currentIdx];
+
+  if (!data || !data.action) {
     onDone();
     return;
   }
 
+  activeInsertAnim = data;
   scene.item.style.opacity = '0';
 
   const rect  = scene.item.getBoundingClientRect();
@@ -577,32 +608,35 @@ function playInsertAnimation(scene, onDone) {
   const left = rect.left - baseW;
   const top  = rect.top  - baseH;
 
-  Object.assign(insertAnimCanvas.style, {
+  Object.assign(data.canvas.style, {
     left:    left + 'px',
-    top:     top  + 'px',
+    top:     top + 'px',
     width:   w + 'px',
     height:  h + 'px',
     opacity: '1',
   });
-  insertAnimRenderer.setSize(w, h, false);
-  insertAnimCamera.aspect = w / h;
-  insertAnimCamera.position.set(0, 0, 8 * mult);
-  insertAnimCamera.updateProjectionMatrix();
 
-  insertAction.stop();
-  insertAction.reset();
-  insertAction.timeScale = INSERT_ANIM_TIMESCALE;
-  insertAction.play();
+  data.renderer.setSize(w, h, false);
+  data.camera.aspect = w / h;
+  data.camera.position.set(0, 0, 8 * mult);
+  data.camera.updateProjectionMatrix();
+
+  data.action.stop();
+  data.action.reset();
+  data.action.timeScale = INSERT_ANIM_TIMESCALE;
+  data.action.play();
   insertAnimPlaying = true;
 
   const onFinished = (e) => {
-    if (e.action !== insertAction) return;
-    insertMixer.removeEventListener('finished', onFinished);
+    if (e.action !== data.action) return;
+    data.mixer.removeEventListener('finished', onFinished);
     insertAnimPlaying = false;
-    insertAnimCanvas.style.opacity = '0';
+    data.canvas.style.opacity = '0';
+    activeInsertAnim = null;
     onDone();
   };
-  insertMixer.addEventListener('finished', onFinished);
+
+  data.mixer.addEventListener('finished', onFinished);
 }
 
 /* ═══ INSERTAR / VOLVER ═══ */
@@ -648,9 +682,12 @@ function goBack() {
       insertingScene.item.style.transform = '';
       insertingScene = null;
     }
-    if (insertAnimCanvas) insertAnimCanvas.style.opacity = '0';
+    if (activeInsertAnim) {
+      activeInsertAnim.canvas.style.opacity = '0';
+      if (activeInsertAnim.action) activeInsertAnim.action.stop();
+    }
     insertAnimPlaying = false;
-    if (insertAction) insertAction.stop();
+    activeInsertAnim = null;
 
     if (DOM.bottomUi)         DOM.bottomUi.classList.remove('hiding');
     if (DOM.header)           DOM.header.classList.remove('hiding');
@@ -889,9 +926,9 @@ function animLoop() {
     s.renderer.render(s.scene, s.camera);
   });
 
-  if (insertAnimPlaying && insertMixer) {
-    insertMixer.update(dt);
-    insertAnimRenderer.render(insertAnimScene, insertAnimCamera);
+  if (insertAnimPlaying && activeInsertAnim) {
+    activeInsertAnim.mixer.update(dt);
+    activeInsertAnim.renderer.render(activeInsertAnim.scene, activeInsertAnim.camera);
   }
 
   if (pspRenderer && pspModel && DOM.pspCanvas) {
