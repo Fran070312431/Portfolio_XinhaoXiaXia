@@ -678,7 +678,7 @@ body {
    Fijo en el lateral derecho, mismo estilo que el
    resto de botones del sitio.
 ═══════════════════════════════════════════════ */
-#btn-extras {
+/* #btn-extras {
   position: fixed;
   top: 24px;
   right: 24px;
@@ -704,7 +704,7 @@ body {
   opacity: 0;
   transform: translateY(-40px);
   pointer-events: none;
-}
+} */
 
 /* ═══════════════════════════════════════════════
    TRANSICIÓN CIRCULAR ("iris") entre el carrusel y

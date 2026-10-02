@@ -352,6 +352,7 @@ function buildCarousel() {
       const maxD  = Math.max(size0.x, size0.y, size0.z);
       const sc    = 4.2 / maxD;
       mesh.scale.setScalar(sc);
+      mesh.scale.x *= 1.05;
 
       if (FORCE_UMD_ROTATION) {
         mesh.rotation.set(MANUAL_UMD_ROTATION[0], MANUAL_UMD_ROTATION[1], MANUAL_UMD_ROTATION[2]);
