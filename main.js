@@ -83,6 +83,7 @@ const INSERT_ANIM_OFFSET = [0, 0, 0];
 const INSERT_ANIM_TIMESCALE = 0.9;     
 const INSERT_ANIM_HOLD_MS   = 150;
 const PSP_BOOT_TRIGGER_MS   = 150;
+const SIDE_HIDE_OFFSET_PX   = 700;
 
 /* ═══ ANCHO DE CADA DISCO EN EL CARRUSEL ═══
    Ya no es un número fijo: se mide del CSS (ancho del disco + márgenes),
@@ -189,8 +190,7 @@ function cacheDOM() {
 
   // Botón de contenido extra: la pantalla se tapa con el círculo y,
   // ya tapada del todo, navegamos de verdad a extra.html (página aparte).
-  // (Solo si el botón está activo — ahora lleva "hidden" en el HTML.)
-  if (DOM.btnExtras && !DOM.btnExtras.hidden) {
+  if (DOM.btnExtras) {
     DOM.btnExtras.addEventListener('click', () => {
       if (appState !== 'carousel') return;
       playCircleWipe(DOM.btnExtras, () => {
@@ -385,9 +385,7 @@ function buildCarousel() {
       const maxD  = Math.max(size0.x, size0.y, size0.z);
       const sc    = 4.2 / maxD;
       mesh.scale.setScalar(sc);
-      // (antes había mesh.scale.x *= 1.05 para compensar que el canvas se
-      //  renderizaba 18px más bajo de lo que se mostraba y el disco salía
-      //  estirado; ahora el render es cuadrado y ya no hace falta)
+      mesh.scale.x *= 1.05;
 
       if (FORCE_UMD_ROTATION) {
         mesh.rotation.set(MANUAL_UMD_ROTATION[0], MANUAL_UMD_ROTATION[1], MANUAL_UMD_ROTATION[2]);
@@ -556,10 +554,8 @@ function updateScales() {
     s.targetOpacity = targetOpacity;
 
     if (inserting && i !== currentIdx) {
-      // Se desplazan lo suficiente para salir de pantalla en cualquier
-      // ancho (antes eran 700px fijos y en monitores anchos se seguían viendo)
       const dir = i < currentIdx ? -1 : 1;
-      s.targetSideOffset = dir * (window.innerWidth * 0.6 + ITEM_W);
+      s.targetSideOffset = dir * SIDE_HIDE_OFFSET_PX;
     } else {
       s.targetSideOffset = 0;
     }
@@ -804,11 +800,9 @@ function buildPSP() {
 }
 
 /* ═══ ENCUADRE RESPONSIVE DE LA PSP ═══
-   Antes la cámara estaba fija (z = 12) y la pantalla HTML tenía un ancho
-   fijo en CSS: solo cuadraba en un tamaño de ventana concreto; en móvil la
-   PSP salía enorme y recortada, y en monitores grandes la pantalla HTML no
-   coincidía con la de la PSP.
-   Ahora:
+   En escritorio se queda todo como siempre (cámara en z = 12, pantalla de
+   712px). Con la cámara fija, en móvil la PSP salía enorme y recortada, así
+   que en pantallas pequeñas:
    1. Se calcula la escala (píxeles por unidad 3D) para que la PSP entera
       quepa en la ventana.
    2. Si así la pantalla queda demasiado pequeña (móvil, tablet vertical),
@@ -839,6 +833,28 @@ function layoutPSP() {
   const R = PSP_SCREEN_RECT;
   const scrW = R.x1 - R.x0, scrH = R.y1 - R.y0;
 
+  const tanHalf = Math.tan(THREE.MathUtils.degToRad(pspCamera.fov / 2));
+  pspCamera.aspect = W / H;
+
+  // ── ESCRITORIO: exactamente igual que antes (cámara en z = 12 y la
+  //    pantalla con su tamaño de siempre). Solo si la PSP cabe entera y
+  //    la pantalla no queda pequeña; si no, se usa el encuadre responsive.
+  const pOrig = H / (2 * (12 - R.z) * tanHalf);
+  if (!shortLandscape && pOrig * pspW <= W * 0.98 && pOrig * scrW >= PSP_MIN_SCREEN_PX) {
+    pspCamera.position.set(0, 0, 12);
+    pspCamera.lookAt(0, 0, 0);
+    pspCamera.updateProjectionMatrix();
+    const w = Math.min(712, 0.58 * W);           // = width: min(712px, 58vw)
+    const h = w * 295 / 480;                     // = aspect-ratio: 480 / 295
+    if (DOM.pspScreen) Object.assign(DOM.pspScreen.style, {
+      left: (W - w) / 2 + 'px',
+      top:  (H - h - 0.055 * H) / 2 + 'px',      // = margin-top: -5.5vh
+      width: w + 'px', height: h + 'px',
+    });
+    return;
+  }
+
+  // ── PANTALLAS PEQUEÑAS: encuadre responsive ──
   const pWhole  = Math.min(0.92 * W / pspW, 0.86 * Ha / pspH);   // PSP entera
   const pScreen = Math.min(0.95 * W / scrW, 0.90 * Ha / scrH);   // pantalla lo más grande posible
   const pMin    = PSP_MIN_SCREEN_PX / scrW;
@@ -849,9 +865,7 @@ function layoutPSP() {
   const cx = t * (R.x0 + R.x1) / 2;
   const cy = t * (R.y0 + R.y1) / 2 - reserve / (2 * p);
 
-  const tanHalf = Math.tan(THREE.MathUtils.degToRad(pspCamera.fov / 2));
   const dist = H / (2 * p * tanHalf);
-  pspCamera.aspect = W / H;
   pspCamera.position.set(cx, cy, R.z + dist);
   pspCamera.lookAt(cx, cy, 0);
   pspCamera.updateProjectionMatrix();
@@ -942,21 +956,8 @@ function bootScreen(game) {
     }
 
     // Enlaces de acción
-    if (DOM.btnPlay) {
-      DOM.btnPlay.href = game.playUrl || '#';
-      DOM.btnPlay.hidden = !game.playUrl;
-    }
-    if (DOM.btnGdd) {
-      DOM.btnGdd.href = game.gddUrl || '#';
-      DOM.btnGdd.hidden = !game.gddUrl;
-      // Si el PDF del GDD todavía no está subido, se oculta el botón en vez
-      // de mandar a una página de error 404
-      if (game.gddUrl) {
-        fetch(game.gddUrl, { method: 'HEAD' })
-          .then(r => { if (!r.ok) DOM.btnGdd.hidden = true; })
-          .catch(() => { DOM.btnGdd.hidden = true; });
-      }
-    }
+    if (DOM.btnPlay) DOM.btnPlay.href = game.playUrl || '#';
+    if (DOM.btnGdd)  DOM.btnGdd.href  = game.gddUrl  || '#';
 
     if (DOM.sgTags) {
       DOM.sgTags.innerHTML = game.tags
@@ -1056,11 +1057,10 @@ function animLoop() {
     if (isCenter) s.mesh.position.y = Math.sin(time * 1.4) * 0.07;
     else          s.mesh.position.y += (0 - s.mesh.position.y) * 0.05;
 
-    // Tamaño real del canvas (cuadrado). Antes se restaban 18px al alto y
-    // el disco se veía estirado en vertical.
-    const cv = s.renderer.domElement;
-    const w = cv.clientWidth  || 280;
-    const h = cv.clientHeight || 280;
+    const w = s.item.clientWidth  || 280;
+    // A 280px queda igual que antes (280 - 18 = 262); en discos más pequeños
+    // (móvil) se resta en proporción para que no salgan más estirados
+    const h = Math.max(Math.round((s.item.clientHeight || 280) * 262 / 280), 80);
     if (s.lastW !== w || s.lastH !== h) {
       s.lastW = w;
       s.lastH = h;
