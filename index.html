@@ -2,15 +2,23 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Portfolio de Xinhao Xia Xia, Game Designer.">
+  <meta name="theme-color" content="#cfe3f3">
   <title>Xinhao Xia Xia — Game Designer</title>
-  <link rel="stylesheet" href="style.css">
+
+  <!-- Fuentes: con <link> cargan antes que con @import dentro del CSS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Abel&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+
+  <link rel="icon" href="favicon/logo.png" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon/Logo.png">
-  </head>
-  <body>
-  <div id="bg-base"></div>
-<div id="bg"></div>
+  <link rel="apple-touch-icon" href="favicon/Logo.png">
+</head>
+<body>
 <div id="loading">
   <div class="load-logo">PSP</div>
   <div class="load-sub">loading portfolio</div>
@@ -46,10 +54,12 @@
     </div>
   </div>
 
-  <!-- Botón fijo de contenido extra (arte, modelado 3D, etc.) — solo icono,
-       lleva a la página aparte extra.html -->
-  <button id="btn-extras" aria-label="Contenido extra">
-    <img src="imagenes/Extra.svg" alt="icono">
+  <!-- Botón de contenido extra (arte, modelado 3D...). Lleva a extra.html.
+       DESACTIVADO con "hidden" porque extra.html ya no está en la carpeta
+       (daba error 404). Cuando vuelvas a tener extra.html, borra "hidden"
+       y descomenta el bloque #btn-extras de style.css. -->
+  <button id="btn-extras" aria-label="Contenido extra" hidden>
+    <img src="imagenes/Extra.svg" alt="">
   </button>
 
   <!-- Overlay de transición circular tipo "iris" -->
@@ -98,10 +108,10 @@
               </div>
 
               <div class="sg-actions">
-                <a id="sg-btn-play" href="#" target="_blank" class="psp-act-btn btn-play">
+                <a id="sg-btn-play" href="#" target="_blank" rel="noopener" class="psp-act-btn btn-play">
                   <span class="psp-icon icon-cross">✖</span> JUGAR
                 </a>
-                <a id="sg-btn-gdd" href="#" target="_blank" class="psp-act-btn btn-gdd">
+                <a id="sg-btn-gdd" href="#" target="_blank" rel="noopener" class="psp-act-btn btn-gdd">
                   <span class="psp-icon icon-triangle">▲</span> VER GDD
                 </a>
               </div>
@@ -109,9 +119,9 @@
           </div>
 
           <!-- Flecha flotante — único control para cambiar de página -->
-          <div class="sg-scroll-arrow" id="sg-scroll-arrow">
+          <button type="button" class="sg-scroll-arrow" id="sg-scroll-arrow" aria-label="Ver información">
             <i class="fa-solid fa-chevron-down" id="sg-scroll-arrow-icon"></i>
-          </div>
+          </button>
         </div>
         <div class="screen-vignette"></div>
         <div class="screen-glare"></div>

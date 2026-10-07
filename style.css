@@ -1,10 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Abel&display=swap');
+/* Las fuentes se cargan con <link> en index.html (más rápido que @import) */
 
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
+
+/* El atributo hidden tiene que ganar siempre (p. ej. a display:flex) */
+[hidden] { display: none !important; }
 
 :root {
   --dark: #252525;
@@ -13,21 +16,35 @@
   --dot: #a5a5a5;
   --retro: 'Pixelify Sans', monospace;
   --ui: 'Abel', sans-serif;
+
+  /* ── TAMAÑO DEL DISCO (responsive) ──
+     Ocupa como mucho 360px (monitores grandes), y en pantallas pequeñas se
+     reduce según el ancho y el alto disponibles. main.js lee el tamaño
+     real del CSS para centrar el disco, así que basta con tocar aquí. */
+  --disc: clamp(150px, min(64vw, 38dvh), 360px);
+  --disc-gap: calc(var(--disc) * 0.18);   /* margen a cada lado del disco */
+
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html, body {
+  height: 100%;
 }
 
 body {
   margin: 0;
   padding: 0;
-  width: 100vw;  
-  background-color: #ffffff;
-  background-image: url('imagenes/fondo.jpg');
+  overflow: hidden;
+  overscroll-behavior: none;
+  background-color: #cfe3f3;
+  /* OJO: el archivo se llama Fondo.jpg con F mayúscula. En Windows da
+     igual, pero en un servidor (GitHub Pages, Netlify...) sí distingue
+     mayúsculas y con "fondo.jpg" el fondo no cargaba. */
+  background-image: url('imagenes/Fondo.jpg');
   background-repeat: no-repeat;
-  background-size: 100% auto;
+  background-size: cover;            /* cubre también pantallas verticales */
   background-position: center top;
-}
-
-#bg-base, #bg {
-  display: none; 
+  -webkit-tap-highlight-color: transparent;
 }
 
 #app {
@@ -35,6 +52,7 @@ body {
   z-index: 2;
   width: 100%;
   height: 100vh;
+  height: 100dvh;   /* en móvil, alto real sin la barra del navegador */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -62,7 +80,8 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin-top: 18px;
+  margin-top: clamp(10px, 2.5dvh, 18px);
+  padding: 0 16px;
   width: 100%;
   text-align: center;
   z-index: 10;
@@ -77,7 +96,7 @@ body {
 
 .header-name { 
   font-family: var(--retro);
-  font-size: 22px;
+  font-size: clamp(14px, 4vw, 22px);
   font-weight: 500;
   color: var(--dark);
   letter-spacing: 1px;
@@ -88,7 +107,7 @@ body {
 
 .header-title { 
   font-family: var(--retro);
-  font-size: 45px;
+  font-size: clamp(26px, 8.5vw, 45px);
   font-weight: 500;
   color: var(--dark);
   line-height: 1.1;
@@ -98,10 +117,10 @@ body {
 
 .header-sub { 
   font-family: var(--retro);
-  font-size: 16px;
+  font-size: clamp(11px, 3vw, 16px);
   font-weight: 700;
   color: var(--dark);
-  letter-spacing: 3px;
+  letter-spacing: clamp(1.5px, .6vw, 3px);
   line-height: 0.5;
   text-transform: uppercase;
   margin: 0;
@@ -109,13 +128,13 @@ body {
 
 #label-select { 
   font-family: var(--retro);
-  font-size: 13px;
+  font-size: clamp(10px, 2.8vw, 13px);
   font-weight: 500;
   color: var(--light);
-  letter-spacing: 3px;
+  letter-spacing: clamp(1.5px, .6vw, 3px);
   line-height: 1;
   text-transform: lowercase;
-  margin-top: 15px; 
+  margin-top: clamp(10px, 2dvh, 15px);
   text-align: center;
   animation: blink 2.5s ease-in-out infinite;
   transition: opacity .3s, transform .35s cubic-bezier(.4, 0, .2, 1);
@@ -136,29 +155,31 @@ body {
 /* --- TÍTULO Y GÉNERO DEL CARRUSEL --- */
 #game-name-display { 
   font-family: var(--retro);
-  font-size: 28px; /* << CAMBIA AQUÍ EL TAMAÑO DEL TÍTULO EN EL CARRUSEL */
+  font-size: clamp(18px, 5.5vw, 28px); /* << TAMAÑO DEL TÍTULO EN EL CARRUSEL (mín, fluido, máx) */
   font-weight: 500;
   color: var(--dark);
   letter-spacing: 1px;
   line-height: 1.2;
   text-transform: uppercase;
   text-align: center;
-  margin: 15px 0 5px 0;
-  min-height: 34px;
+  margin: clamp(6px, 1.6dvh, 15px) 0 5px 0;
+  padding: 0 16px;
+  min-height: 1.2em;
   transition: opacity .25s, transform .3s cubic-bezier(.4, 0, .2, 1);
 }
 
 #game-genre-display { 
   font-family: var(--ui); 
-  font-size: 14px; /* << CAMBIA AQUÍ EL TAMAÑO DEL GÉNERO EN EL CARRUSEL */
+  font-size: clamp(11px, 3.2vw, 14px); /* << TAMAÑO DEL GÉNERO EN EL CARRUSEL */
   font-weight: 600;
   color: var(--mid);
   letter-spacing: 2px;
-  line-height: 1;
+  line-height: 1.2;
   text-transform: uppercase;
   text-align: center;
-  margin: 0 0 15px 0;
-  min-height: 25px;
+  margin: 0 0 clamp(6px, 1.6dvh, 15px) 0;
+  padding: 0 16px;
+  min-height: 1.2em;
   transition: opacity .25s, transform .3s cubic-bezier(.4, 0, .2, 1);
 }
 
@@ -173,28 +194,34 @@ body {
 #carousel-outer {
   width: 100%;
   flex: 1;
+  min-height: 0;
   overflow: hidden;
   position: relative;
   margin-top: 4px;
   perspective: 1200px;
+  /* el disco queda centrado en vertical en el hueco disponible */
+  display: flex;
+  align-items: center;
+  touch-action: pan-y;   /* el deslizamiento horizontal lo gestiona main.js */
 }
 
 #carousel-track {
   display: flex;
   align-items: center;
-  padding: 50px 0;
+  width: 100%;
+  padding: calc(var(--disc) * 0.12) 0;
   will-change: transform;
 }
 
 .umd-item {
   position: relative;
   flex-shrink: 0;
-  width: 280px;
-  height: 280px;
+  width: var(--disc);
+  height: var(--disc);
   border-radius: 6px;
   overflow: hidden;
   background: transparent;
-  margin: 0 50px; 
+  margin: 0 var(--disc-gap);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -202,13 +229,13 @@ body {
 }
 
 .umd-canvas {
-  width: 280px !important;
-  height: 280px !important;
+  width: var(--disc) !important;
+  height: var(--disc) !important;
   display: block;
 }
 
 .umd-shadow {
-  width: 140px;
+  width: 50%;
   height: 14px;
   background: radial-gradient(ellipse, rgba(0,0,0,.12) 0%, transparent 70%);
   margin-top: -8px;
@@ -219,6 +246,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding-bottom: var(--safe-bottom);
   transition: opacity .25s, transform .3s cubic-bezier(.4, 0, .2, 1);
 }
 
@@ -233,7 +261,7 @@ body {
   gap: 12px;
   align-items: center;
   justify-content: center;
-  margin: 8px 0 6px;
+  margin: 8px 0 clamp(4px, 1dvh, 6px);
 }
 
 .arr-btn {
@@ -245,6 +273,8 @@ body {
   border: none;
   border-radius: 4px;
   padding: 9px 14px;
+  min-width: 44px;      /* tamaño mínimo cómodo para el dedo */
+  min-height: 36px;
   cursor: pointer;
   outline: none;
   box-shadow: 0 4px 0 rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.4);
@@ -252,7 +282,6 @@ body {
   line-height: 1;
 }
 
-.arr-btn:hover  { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,.4); }
 .arr-btn:active { transform: translateY(2px);  box-shadow: 0 2px 0 rgba(0,0,0,.4); }
 
 #btn-insert {
@@ -263,17 +292,31 @@ body {
   background: var(--dark);
   border: none;
   border-radius: 4px;
-  padding: 11px 26px;
+  padding: 11px clamp(16px, 5vw, 26px);
+  white-space: nowrap;
   cursor: pointer;
   outline: none;
   box-shadow: 0 4px 0 rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.4);
   transition: box-shadow .12s, transform .12s;
-  margin: 4px 0 16px;
+  margin: 4px 0 clamp(10px, 2.2dvh, 16px);
 }
 
 #btn-insert::before { content: '▶ '; font-size: 10px; }
-#btn-insert:hover   { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,.4); }
 #btn-insert:active  { transform: translateY(2px);  box-shadow: 0 2px 0 rgba(0,0,0,.4); }
+
+/* El efecto hover solo en dispositivos con ratón: en móvil se quedaba
+   "pegado" después de tocar el botón */
+@media (hover: hover) {
+  .arr-btn:hover    { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,.4); }
+  #btn-insert:hover { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,.4); }
+}
+
+/* Foco visible para quien navega con teclado */
+.arr-btn:focus-visible, #btn-insert:focus-visible, #btn-back:focus-visible,
+.nav-dot:focus-visible, .psp-act-btn:focus-visible, .sg-scroll-arrow:focus-visible {
+  outline: 2px solid #4a90d9;
+  outline-offset: 3px;
+}
 
 #dots-nav {
   display: flex;
@@ -289,6 +332,8 @@ body {
   cursor: pointer;
   transition: all .3s;
   border: none;
+  padding: 0;
+  flex-shrink: 0;
 }
 
 .nav-dot.active {
@@ -326,17 +371,22 @@ body {
   z-index: 1;
 }
 
+/* Posición y tamaño los pone main.js (layoutPSP) proyectando la pantalla
+   del modelo 3D, así encaja en cualquier tamaño de ventana. Los textos de
+   dentro usan "cqw" (% del ancho de esta pantalla) para escalar con ella. */
 #psp-screen {
-  position: relative;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
   z-index: 10;
-  width: min(712px, 58vw);
-  aspect-ratio: 480 / 295;
   border-radius: 3px;
   overflow: hidden;
   background: #000;
   display: flex;
   flex-direction: column;
-  margin-top: -5.5vh;
+  container-type: inline-size;
 }
 
 #screen-idle {
@@ -350,8 +400,8 @@ body {
   gap: 10px;
 }
 
-.screen-psp-logo { font-family: var(--retro); font-size: 32px; color: #fff; letter-spacing: -1px; }
-.screen-psp-sub  { font-family: var(--retro); font-size: 8px; letter-spacing: 5px; color: rgba(255,255,255,.3); }
+.screen-psp-logo { font-family: var(--retro); font-size: clamp(22px, 4.5cqw, 40px); color: #fff; letter-spacing: -1px; }
+.screen-psp-sub  { font-family: var(--retro); font-size: clamp(7px, 1.2cqw, 11px); letter-spacing: 5px; color: rgba(255,255,255,.3); }
 
 #screen-game {
   width: 100%;
@@ -368,7 +418,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 12px 5px;
+  padding: clamp(4px, .85cqw, 8px) clamp(8px, 1.7cqw, 16px);
+  gap: 8px;
   background: rgba(0, 0, 0, .7);
   border-bottom: 1px solid rgba(255, 255, 255, .06);
   flex-shrink: 0;
@@ -376,10 +427,12 @@ body {
 
 .sg-time, .sg-console, .sg-battery {
   font-family: var(--retro);
-  font-size: 10px;
+  font-size: clamp(8px, 1.4cqw, 13px);
   color: #fff;
   letter-spacing: 1px;
+  white-space: nowrap;
 }
+.sg-console { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 
 .sg-body {
   flex: 1;
@@ -419,18 +472,19 @@ body {
 
 #btn-back {
   position: fixed;
-  bottom: 24px;
+  bottom: calc(clamp(14px, 3dvh, 24px) + var(--safe-bottom));
   left: 50%;
   transform: translateX(-50%);
   z-index: 60;
   font-family: var(--retro);
-  font-size: 13px;
+  font-size: clamp(11px, 3vw, 13px);
   letter-spacing: 2px;
+  white-space: nowrap;   /* antes en móvil se partía en dos líneas */
   color: #fff;
   background: var(--dark);
   border: none;
   border-radius: 4px;
-  padding: 11px 26px;
+  padding: 11px clamp(16px, 5vw, 26px);
   cursor: pointer;
   outline: none;
   backdrop-filter: blur(10px);
@@ -442,8 +496,10 @@ body {
 
 #btn-back.visible { opacity: 1; pointer-events: auto; }
 #btn-back::before { content: '◀ '; font-size: 10px; }
-#btn-back:hover   { transform: translateX(-50%) translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,.4); }
 #btn-back:active  { transform: translateX(-50%) translateY(2px);  box-shadow: 0 2px 0 rgba(0,0,0,.4); }
+@media (hover: hover) {
+  #btn-back:hover { transform: translateX(-50%) translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,.4); }
+}
 
 /* ═══ PANTALLA DE CARGA ═══ */
 #loading {
@@ -525,11 +581,13 @@ body {
   transform: translateY(100%);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   scrollbar-width: none;
   display: flex;
   flex-direction: column;
-  padding: 16px 14px 14px;
-  margin-bottom: 18px;
+  /* El hueco de abajo para la flecha va con padding: antes era
+     margin-bottom y hacía que el título asomara por debajo de la portada */
+  padding: clamp(8px, 2.2cqw, 20px) clamp(10px, 2cqw, 20px) clamp(30px, 5.2cqw, 52px);
 }
 
 .sg-info-page::-webkit-scrollbar { display: none; }
@@ -539,12 +597,12 @@ body {
 
 .sg-info-top {
   text-align: left;
-  margin-bottom: 10px;
+  margin-bottom: clamp(6px, 1.4cqw, 12px);
 }
 
 .sg-title-info {
   font-family: var(--retro);
-  font-size: 24px; /* << TÍTULO INFO PSP */
+  font-size: clamp(14px, 3.4cqw, 32px); /* << TÍTULO INFO PSP (mín, fluido, máx) */
   color: #ffffff;
   line-height: 1.15;
   margin-bottom: 3px;
@@ -552,7 +610,7 @@ body {
 
 .sg-genre-info {
   font-family: var(--ui);
-  font-size: 14px; /* << GÉNERO INFO PSP */
+  font-size: clamp(10px, 2cqw, 18px); /* << GÉNERO INFO PSP */
   font-weight: 700;
   letter-spacing: 2px;
   color: #93c5fd;
@@ -561,10 +619,10 @@ body {
 
 .sg-desc {
   font-family: var(--ui);
-  font-size: 16px;
-  line-height: 1.55;
+  font-size: clamp(11px, 2.25cqw, 21px);
+  line-height: 1.5;
   color: rgba(255, 255, 255, 0.88);
-  margin-bottom: 14px;
+  margin-bottom: clamp(8px, 2cqw, 16px);
 }
 
 .sg-meta-row {
@@ -573,7 +631,7 @@ body {
   justify-content: space-between;
   gap: 10px;
   margin-top: auto;
-  margin-bottom: 12px;
+  margin-bottom: clamp(8px, 1.7cqw, 14px);
 }
 
 .sg-tags {
@@ -586,8 +644,8 @@ body {
 
 .sg-tag {
   font-family: var(--retro);
-  font-size: 12px;
-  padding: 3px 7px;
+  font-size: clamp(8px, 1.7cqw, 15px);
+  padding: .25em .6em;
   border-radius: 3px;
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.25);
@@ -597,7 +655,7 @@ body {
 
 .sg-year {
   font-family: var(--retro);
-  font-size: 14px;
+  font-size: clamp(9px, 2cqw, 18px);
   letter-spacing: 1px;
   color: rgba(255, 255, 255, .55);
   white-space: nowrap;
@@ -614,20 +672,21 @@ body {
 
 .psp-act-btn {
   flex: 1;
-  max-width: 140px;
+  max-width: clamp(110px, 22cqw, 190px);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   font-family: var(--retro);
-  font-size: 11px;
+  font-size: clamp(9px, 1.6cqw, 15px);
   font-weight: 600;
   letter-spacing: 1px;
+  white-space: nowrap;
   color: #fff;
   text-decoration: none;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.08) 100%);
   border: 1px solid rgba(255, 255, 255, 0.35);
-  padding: 8px 10px;
+  padding: .75em .9em;
   border-radius: 4px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
   transition: all 0.2s ease;
@@ -638,29 +697,31 @@ body {
   transform: translateY(-2px);
 }
 
-.psp-icon { font-size: 11px; font-weight: bold; }
+.psp-icon { font-size: 1em; font-weight: bold; }
 .icon-cross { color: #60a5fa; }
 .icon-triangle { color: #34d399; }
 
 .sg-scroll-arrow {
   position: absolute;
-  bottom: 8px;
+  bottom: clamp(2px, 1cqw, 8px);
   left: 50%;
   transform: translateX(-50%);
   z-index: 25;
   color: #ffffff;
-  font-size: 14px;
+  font-size: clamp(13px, 2cqw, 20px);
   cursor: pointer;
   pointer-events: auto;
-  padding: 6px 12px;
+  padding: 6px 14px;
+  background: none;
+  border: none;
+  line-height: 1;
   animation: floatBounce 1.4s ease-in-out infinite;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
   transition: color 0.3s ease, transform 0.2s ease;
 }
 
-.sg-scroll-arrow:hover {
-  color: #93c5fd;
-  transform: translateX(-50%) scale(1.2);
+@media (hover: hover) {
+  .sg-scroll-arrow:hover { color: #93c5fd; }
 }
 
 .sg-scroll-arrow i {
@@ -904,13 +965,55 @@ body {
   .xmb-content-bar { left: 16px; right: 16px; }
 }
 
-/* ═══ RESPONSIVE ═══ */
-@media (max-width: 700px) {
-  .header-title { font-size: 28px; }
-  .umd-item { width: 200px; height: 200px !important; }
-  .umd-canvas { width: 200px !important; height: 200px !important; }
-  #psp-screen { width: 92vw; margin-top: -4vh; }
-  #btn-extras { right: 10px; width: 40px; height: 40px; }
+/* ═══════════════════════════════════════════════
+   RESPONSIVE
+   La mayoría ya se adapta sola (clamp, dvh, variable --disc y el
+   encuadre de la PSP en main.js). Aquí solo los casos especiales.
+═══════════════════════════════════════════════ */
+
+/* Móvil vertical: los discos de los lados más cerca, para que asomen
+   por los bordes y se entienda que se puede deslizar */
+@media (max-width: 600px) {
+  :root { --disc-gap: calc(var(--disc) * 0.03); }
+}
+
+/* Móvil en horizontal (poca altura): cabecera compacta y el disco
+   según el alto disponible */
+@media (max-height: 520px) and (orientation: landscape) {
+  :root { --disc: clamp(110px, 34dvh, 200px); }
+
+  #header        { margin-top: 6px; }
+  .header-name   { font-size: clamp(11px, 3.4dvh, 16px); margin-bottom: 2px; }
+  .header-title  { font-size: clamp(18px, 7dvh, 30px); margin-bottom: 2px; }
+  .header-sub    { font-size: clamp(9px, 2.6dvh, 12px); }
+  #label-select  { display: none; }
+
+  #game-name-display  { font-size: clamp(14px, 4.6dvh, 22px); margin-top: 2px; }
+  #game-genre-display { margin-bottom: 4px; }
+  #carousel-nav       { margin: 4px 0; }
+  #btn-insert         { margin: 2px 0 8px; padding-top: 9px; padding-bottom: 9px; }
+
+  /* En la PSP la pantalla ocupa casi todo el alto: el botón de volver
+     pasa a la esquina superior izquierda, encima del marco */
+  #btn-back {
+    top: 10px;
+    bottom: auto;
+    left: calc(10px + env(safe-area-inset-left, 0px));
+    transform: none;
+    padding: 9px 14px;
+  }
+  #btn-back:active { transform: translateY(2px); }
+  @media (hover: hover) { #btn-back:hover { transform: translateY(-2px); } }
+}
+
+/* Pantallas muy estrechas (≤ 340px, p. ej. iPhone SE 1ª gen.) */
+@media (max-width: 340px) {
+  #btn-insert { font-size: 11px; letter-spacing: 1px; }
+}
+
+/* Quien tenga activado "reducir movimiento" en su sistema */
+@media (prefers-reduced-motion: reduce) {
+  #label-select, .sg-scroll-arrow { animation: none; }
 }
 
 /* ═══════════════════════════════════════════════

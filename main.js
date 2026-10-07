@@ -81,12 +81,30 @@ const MANUAL_UMD_ROTATION = [0, Math.PI, 0];
 const INSERT_ANIM_SCALE  = 60;          
 const INSERT_ANIM_OFFSET = [0, 0, 0];  
 const INSERT_ANIM_TIMESCALE = 0.9;     
-const INSERT_ANIM_HOLD_MS   = 150;     
-const PSP_BOOT_TRIGGER_MS   = 150;     
-const SIDE_HIDE_OFFSET_PX   = 700;     
+const INSERT_ANIM_HOLD_MS   = 150;
+const PSP_BOOT_TRIGGER_MS   = 150;
 
-/* ═══ CONSTANTES ═══ */
-const ITEM_W = 380;   
+/* ═══ ANCHO DE CADA DISCO EN EL CARRUSEL ═══
+   Ya no es un número fijo: se mide del CSS (ancho del disco + márgenes),
+   porque en móvil/tablet los discos son más pequeños. Si esto no
+   coincide con el CSS, el disco central deja de quedar en el centro. */
+let ITEM_W = 380;
+
+function measureItemWidth() {
+  const item = DOM.carouselTrack && DOM.carouselTrack.querySelector('.umd-item');
+  if (!item) return;
+  const cs = getComputedStyle(item);
+  // offsetWidth ignora el transform: scale() que pone el carrusel
+  ITEM_W = item.offsetWidth + parseFloat(cs.marginLeft) + parseFloat(cs.marginRight);
+}
+
+/* ═══ PANTALLA DE LA PSP DENTRO DEL MODELO 3D ═══
+   Rectángulo de la pantalla en coordenadas del modelo, una vez escalado a
+   PSP_TARGET_SIZE (15 de ancho). Medido sobre un render del modelo. Se usa
+   para encuadrar la cámara y colocar el HTML (#psp-screen) justo encima. */
+const PSP_TARGET_SIZE = 15;
+const PSP_SCREEN_RECT = { x0: -4.251, x1: 4.300, y0: -2.312, y1: 2.836, z: 0.518 };
+const PSP_MIN_SCREEN_PX = 560;   // en pantallas pequeñas se hace zoom hasta que la pantalla mida esto
 
 /* ═══ ESTADO ═══ */
 let currentIdx  = 0;
@@ -102,11 +120,17 @@ let clockTimer  = null;
 /* inserción */
 let insertingScene = null;  
 
-/* inserción — animación real vía Blender (.glb + AnimationMixer) */
+/* inserción — animación real vía Blender (.glb + AnimationMixer).
+   Un único canvas/renderer compartido por las 5 animaciones: antes había
+   uno por juego (11 contextos WebGL en total) y en móviles el navegador
+   empieza a cerrar contextos y los discos desaparecen. */
 let insertAnimGLTFs    = [];
 let insertAnimData     = [];
+let insertAnimCanvas   = null;
+let insertAnimRenderer = null;
 let activeInsertAnim   = null;
 let insertAnimPlaying  = false;
+let pspLastW = 0, pspLastH = 0;
 
 /* ═══ CACHÉ DOM ═══ */
 let DOM = {};
@@ -165,7 +189,8 @@ function cacheDOM() {
 
   // Botón de contenido extra: la pantalla se tapa con el círculo y,
   // ya tapada del todo, navegamos de verdad a extra.html (página aparte).
-  if (DOM.btnExtras) {
+  // (Solo si el botón está activo — ahora lleva "hidden" en el HTML.)
+  if (DOM.btnExtras && !DOM.btnExtras.hidden) {
     DOM.btnExtras.addEventListener('click', () => {
       if (appState !== 'carousel') return;
       playCircleWipe(DOM.btnExtras, () => {
@@ -215,19 +240,26 @@ function playCircleWipe(originEl, onCovered, shrinkBack = true) {
   requestAnimationFrame(() => DOM.circleFill.classList.add('expand'));
 }
 
-/* ═══ LOADING ═══ */
+/* ═══ LOADING ═══
+   La barra se busca ya aquí: antes se buscaba en cacheDOM(), que solo se
+   llama al terminar de cargar, así que la barra nunca llegaba a moverse. */
+DOM.loadBar = document.querySelector('.load-bar');
 let fakePct = 0;
 const fakeTimer = setInterval(() => {
-  fakePct = Math.min(fakePct + Math.random() * 10, 80);
-  if (DOM.loadBar) DOM.loadBar.style.width = fakePct + '%';
+  fakePct = Math.min(fakePct + Math.random() * 6, 60);
+  setLoadBar(Math.max(fakePct, 60 * modelsReady / TOTAL_MODELS));
 }, 180);
+
+function setLoadBar(pct) {
+  if (DOM.loadBar) DOM.loadBar.style.width = Math.min(100, pct) + '%';
+}
 
 function modelLoaded() {
   modelsReady++;
-  if (DOM.loadBar) DOM.loadBar.style.width = (80 + modelsReady * 7) + '%';
+  setLoadBar(60 + 40 * modelsReady / TOTAL_MODELS);
   if (modelsReady >= TOTAL_MODELS) {
     clearInterval(fakeTimer);
-    if (DOM.loadBar) DOM.loadBar.style.width = '100%';
+    setLoadBar(100);
     setupInsertAnimScenes();
     setTimeout(init, 350);
   }
@@ -281,6 +313,7 @@ function playPSPSound() {
 function init() {
   cacheDOM();
   buildCarousel();
+  measureItemWidth();
   buildPSP();
   buildDots();
 
@@ -352,7 +385,9 @@ function buildCarousel() {
       const maxD  = Math.max(size0.x, size0.y, size0.z);
       const sc    = 4.2 / maxD;
       mesh.scale.setScalar(sc);
-      mesh.scale.x *= 1.05;
+      // (antes había mesh.scale.x *= 1.05 para compensar que el canvas se
+      //  renderizaba 18px más bajo de lo que se mostraba y el disco salía
+      //  estirado; ahora el render es cuadrado y ya no hace falta)
 
       if (FORCE_UMD_ROTATION) {
         mesh.rotation.set(MANUAL_UMD_ROTATION[0], MANUAL_UMD_ROTATION[1], MANUAL_UMD_ROTATION[2]);
@@ -521,8 +556,10 @@ function updateScales() {
     s.targetOpacity = targetOpacity;
 
     if (inserting && i !== currentIdx) {
+      // Se desplazan lo suficiente para salir de pantalla en cualquier
+      // ancho (antes eran 700px fijos y en monitores anchos se seguían viendo)
       const dir = i < currentIdx ? -1 : 1;
-      s.targetSideOffset = dir * SIDE_HIDE_OFFSET_PX;
+      s.targetSideOffset = dir * (window.innerWidth * 0.6 + ITEM_W);
     } else {
       s.targetSideOffset = 0;
     }
@@ -533,6 +570,24 @@ function updateScales() {
 function setupInsertAnimScenes() {
   insertAnimData = [];
 
+  // Canvas + renderer únicos, compartidos por todas las animaciones
+  insertAnimCanvas = document.createElement('canvas');
+  insertAnimCanvas.id = 'insert-anim-canvas';
+  Object.assign(insertAnimCanvas.style, {
+    position: 'fixed',
+    left: '0px', top: '0px', width: '0px', height: '0px',
+    pointerEvents: 'none',
+    zIndex: '40',
+    opacity: '0',
+  });
+  document.body.appendChild(insertAnimCanvas);
+
+  insertAnimRenderer = new THREE.WebGLRenderer({ canvas: insertAnimCanvas, antialias: true, alpha: true });
+  insertAnimRenderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  insertAnimRenderer.setClearColor(0, 0);
+  insertAnimRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+  insertAnimRenderer.toneMappingExposure = 1.35;
+
   GAMES.forEach((game, i) => {
     const gltf = insertAnimGLTFs[i];
     if (!gltf) {
@@ -540,23 +595,8 @@ function setupInsertAnimScenes() {
       return;
     }
 
-    const canvas = document.createElement('canvas');
-    canvas.id = `insert-anim-canvas-${i}`;
-    Object.assign(canvas.style, {
-      position: 'fixed',
-      left: '0px', top: '0px', width: '0px', height: '0px',
-      pointerEvents: 'none',
-      zIndex: '40',
-      opacity: '0',
-    });
-    document.body.appendChild(canvas);
-
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-    renderer.setClearColor(0, 0);
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.35;
-
+    const canvas = insertAnimCanvas;
+    const renderer = insertAnimRenderer;
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 60);
     camera.position.set(0, 0, 8);
@@ -743,8 +783,6 @@ function buildPSP() {
     const box  = new THREE.Box3().setFromObject(pspModel);
     const maxD = Math.max(...box.getSize(new THREE.Vector3()).toArray());
 
-    const PSP_TARGET_SIZE = 15; 
-
     const sc = PSP_TARGET_SIZE / maxD;
     pspModel.scale.setScalar(sc);
     pspModel.position.sub(box.getCenter(new THREE.Vector3()).multiplyScalar(sc));
@@ -754,6 +792,86 @@ function buildPSP() {
     pspModel = makeFallbackPSP();
   }
   pspScene.add(pspModel);
+
+  // Tamaño real de la PSP ya escalada (para encuadrarla en layoutPSP)
+  const size = new THREE.Box3().setFromObject(pspModel).getSize(new THREE.Vector3());
+  pspScene.userData.pspW = size.x;
+  pspScene.userData.pspH = size.y;
+
+  layoutPSP();
+  // Compilar los shaders ya, para que no haya tirón la primera vez que sale
+  pspRenderer.compile(pspScene, pspCamera);
+}
+
+/* ═══ ENCUADRE RESPONSIVE DE LA PSP ═══
+   Antes la cámara estaba fija (z = 12) y la pantalla HTML tenía un ancho
+   fijo en CSS: solo cuadraba en un tamaño de ventana concreto; en móvil la
+   PSP salía enorme y recortada, y en monitores grandes la pantalla HTML no
+   coincidía con la de la PSP.
+   Ahora:
+   1. Se calcula la escala (píxeles por unidad 3D) para que la PSP entera
+      quepa en la ventana.
+   2. Si así la pantalla queda demasiado pequeña (móvil, tablet vertical),
+      se acerca la cámara hasta que la pantalla mida PSP_MIN_SCREEN_PX,
+      sin pasarse nunca del ancho/alto de la ventana (los lados de la PSP
+      pueden quedar fuera, la pantalla nunca).
+   3. Se proyectan las esquinas de la pantalla 3D y se coloca #psp-screen
+      exactamente encima. */
+function layoutPSP() {
+  if (!pspRenderer || !pspCamera || !DOM.viewPsp) return;
+  const W = DOM.viewPsp.clientWidth;
+  const H = DOM.viewPsp.clientHeight;
+  if (!W || !H) return;
+
+  if (W !== pspLastW || H !== pspLastH) {
+    pspLastW = W; pspLastH = H;
+    pspRenderer.setSize(W, H, false);
+  }
+
+  // Hueco reservado abajo para el botón "Volver al menú" (en móvil
+  // horizontal el botón va arriba a la izquierda y no hace falta)
+  const shortLandscape = H < 520 && W > H;
+  const reserve = shortLandscape ? 0 : Math.min(96, H * 0.12);
+  const Ha = H - reserve;
+
+  const pspW = pspScene.userData.pspW || PSP_TARGET_SIZE;
+  const pspH = pspScene.userData.pspH || PSP_TARGET_SIZE * 0.44;
+  const R = PSP_SCREEN_RECT;
+  const scrW = R.x1 - R.x0, scrH = R.y1 - R.y0;
+
+  const pWhole  = Math.min(0.92 * W / pspW, 0.86 * Ha / pspH);   // PSP entera
+  const pScreen = Math.min(0.95 * W / scrW, 0.90 * Ha / scrH);   // pantalla lo más grande posible
+  const pMin    = PSP_MIN_SCREEN_PX / scrW;
+  const p = Math.max(pWhole, Math.min(pScreen, pMin));
+
+  // Al hacer zoom se centra la pantalla; con la PSP entera, la PSP
+  const t = Math.min(1, Math.max(0, (p / pWhole - 1) / 0.25));
+  const cx = t * (R.x0 + R.x1) / 2;
+  const cy = t * (R.y0 + R.y1) / 2 - reserve / (2 * p);
+
+  const tanHalf = Math.tan(THREE.MathUtils.degToRad(pspCamera.fov / 2));
+  const dist = H / (2 * p * tanHalf);
+  pspCamera.aspect = W / H;
+  pspCamera.position.set(cx, cy, R.z + dist);
+  pspCamera.lookAt(cx, cy, 0);
+  pspCamera.updateProjectionMatrix();
+  pspCamera.updateMatrixWorld();
+
+  // Proyectar las esquinas de la pantalla 3D a píxeles
+  const proj = (x, y) => {
+    const v = new THREE.Vector3(x, y, R.z).project(pspCamera);
+    return { x: (v.x + 1) / 2 * W, y: (1 - v.y) / 2 * H };
+  };
+  const tl = proj(R.x0, R.y1);
+  const br = proj(R.x1, R.y0);
+  if (DOM.pspScreen) {
+    Object.assign(DOM.pspScreen.style, {
+      left:   tl.x + 'px',
+      top:    tl.y + 'px',
+      width:  (br.x - tl.x) + 'px',
+      height: (br.y - tl.y) + 'px',
+    });
+  }
 }
 
 function makeFallbackPSP() {
@@ -824,8 +942,21 @@ function bootScreen(game) {
     }
 
     // Enlaces de acción
-    if (DOM.btnPlay) DOM.btnPlay.href = game.playUrl || '#';
-    if (DOM.btnGdd)  DOM.btnGdd.href  = game.gddUrl  || '#';
+    if (DOM.btnPlay) {
+      DOM.btnPlay.href = game.playUrl || '#';
+      DOM.btnPlay.hidden = !game.playUrl;
+    }
+    if (DOM.btnGdd) {
+      DOM.btnGdd.href = game.gddUrl || '#';
+      DOM.btnGdd.hidden = !game.gddUrl;
+      // Si el PDF del GDD todavía no está subido, se oculta el botón en vez
+      // de mandar a una página de error 404
+      if (game.gddUrl) {
+        fetch(game.gddUrl, { method: 'HEAD' })
+          .then(r => { if (!r.ok) DOM.btnGdd.hidden = true; })
+          .catch(() => { DOM.btnGdd.hidden = true; });
+      }
+    }
 
     if (DOM.sgTags) {
       DOM.sgTags.innerHTML = game.tags
@@ -855,15 +986,25 @@ document.getElementById('btn-back').onclick   = goBack;
 window.addEventListener('keydown', e => {
   if(e.key==='ArrowLeft')  navigate(-1);
   if(e.key==='ArrowRight') navigate(1);
-  if(e.key==='Enter'  && appState==='carousel') startInsert();
+  // Si el foco está en un botón/enlace, Enter ya lo pulsa el navegador.
+  // Antes, Enter sobre una flecha cambiaba de juego Y además insertaba.
+  const onControl = e.target.closest && e.target.closest('button, a');
+  if(e.key==='Enter'  && appState==='carousel' && !onControl) startInsert();
   if(e.key==='Escape' && appState==='psp')      goBack();
 });
 
+let resizeRaf = 0;
 window.addEventListener('resize', () => {
-  if (appState === 'carousel') { 
-    trackOffset = centeredOffset(currentIdx); 
-    applyTrackTransform(trackOffset); 
-  }
+  cancelAnimationFrame(resizeRaf);
+  resizeRaf = requestAnimationFrame(() => {
+    if (!DOM.carouselTrack) return;   // todavía cargando
+    measureItemWidth();
+    if (appState === 'carousel') {
+      trackOffset = centeredOffset(currentIdx);
+      applyTrackTransform(trackOffset);
+    }
+    layoutPSP();
+  });
 });
 
 let tx = null;
@@ -915,8 +1056,11 @@ function animLoop() {
     if (isCenter) s.mesh.position.y = Math.sin(time * 1.4) * 0.07;
     else          s.mesh.position.y += (0 - s.mesh.position.y) * 0.05;
 
-    const w = s.item.clientWidth  || 280;
-    const h = Math.max((s.item.clientHeight || 280) - 18, 80);
+    // Tamaño real del canvas (cuadrado). Antes se restaban 18px al alto y
+    // el disco se veía estirado en vertical.
+    const cv = s.renderer.domElement;
+    const w = cv.clientWidth  || 280;
+    const h = cv.clientHeight || 280;
     if (s.lastW !== w || s.lastH !== h) {
       s.lastW = w;
       s.lastH = h;
@@ -932,16 +1076,11 @@ function animLoop() {
     activeInsertAnim.renderer.render(activeInsertAnim.scene, activeInsertAnim.camera);
   }
 
-  if (pspRenderer && pspModel && DOM.pspCanvas) {
-    const W = DOM.pspCanvas.clientWidth;
-    const H = DOM.pspCanvas.clientHeight;
-    if (W > 0 && H > 0) {
-      if (pspRenderer.domElement.width !== Math.round(W * devicePixelRatio)) {
-        pspRenderer.setSize(W, H, false);
-        pspCamera.aspect = W / H;
-        pspCamera.updateProjectionMatrix();
-      }
-      pspRenderer.render(pspScene, pspCamera);
-    }
+  // La PSP solo se dibuja cuando se ve (o está entrando/saliendo).
+  // El tamaño lo gestiona layoutPSP() al redimensionar; antes se
+  // comparaba con devicePixelRatio sin limitar y en móviles con DPR 3
+  // se recreaba el buffer en CADA frame.
+  if (pspRenderer && pspModel && appState !== 'carousel') {
+    pspRenderer.render(pspScene, pspCamera);
   }
 }
