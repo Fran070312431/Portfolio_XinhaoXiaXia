@@ -105,7 +105,9 @@ function measureItemWidth() {
    para encuadrar la cámara y colocar el HTML (#psp-screen) justo encima. */
 const PSP_TARGET_SIZE = 15;
 const PSP_SCREEN_RECT = { x0: -4.251, x1: 4.300, y0: -2.312, y1: 2.836, z: 0.518 };
-const PSP_MIN_SCREEN_PX = 560;   // en pantallas pequeñas se hace zoom hasta que la pantalla mida esto
+const PSP_MIN_SCREEN_PX = 560;        // por debajo de esto ya no se usa el encuadre de escritorio
+const PSP_FULLSCREEN_BELOW_PX = 480;  // si la pantalla de la PSP mediría menos, info a pantalla completa
+let pspFullscreen = false;
 
 /* ═══ ESTADO ═══ */
 let currentIdx  = 0;
@@ -555,7 +557,12 @@ function updateScales() {
 
     if (inserting && i !== currentIdx) {
       const dir = i < currentIdx ? -1 : 1;
-      s.targetSideOffset = dir * SIDE_HIDE_OFFSET_PX;
+      // Hasta 1920px igual que siempre (700px). En pantallas más anchas
+      // se apartan más, si no se quedaban a la vista.
+      const off = window.innerWidth > 1920
+        ? Math.max(SIDE_HIDE_OFFSET_PX, window.innerWidth / 2 + ITEM_W)
+        : SIDE_HIDE_OFFSET_PX;
+      s.targetSideOffset = dir * off;
     } else {
       s.targetSideOffset = 0;
     }
@@ -800,17 +807,13 @@ function buildPSP() {
 }
 
 /* ═══ ENCUADRE RESPONSIVE DE LA PSP ═══
-   En escritorio se queda todo como siempre (cámara en z = 12, pantalla de
-   712px). Con la cámara fija, en móvil la PSP salía enorme y recortada, así
-   que en pantallas pequeñas:
-   1. Se calcula la escala (píxeles por unidad 3D) para que la PSP entera
-      quepa en la ventana.
-   2. Si así la pantalla queda demasiado pequeña (móvil, tablet vertical),
-      se acerca la cámara hasta que la pantalla mida PSP_MIN_SCREEN_PX,
-      sin pasarse nunca del ancho/alto de la ventana (los lados de la PSP
-      pueden quedar fuera, la pantalla nunca).
-   3. Se proyectan las esquinas de la pantalla 3D y se coloca #psp-screen
-      exactamente encima. */
+   1. Escritorio: cámara como siempre (z = 12). La pantalla HTML se pone
+      con su tamaño de siempre o, en pantallas grandes, encima de la de la PSP.
+   2. Pantallas medianas: la PSP entera, encajada en la ventana.
+   3. Móvil / tablet: si la pantalla de la PSP quedaría ilegible, se quita
+      la PSP y la info va a pantalla completa (clase .psp-fullscreen).
+   La posición de la pantalla 3D (PSP_SCREEN_RECT) se proyecta a píxeles
+   para que el HTML (#psp-screen) caiga justo encima. */
 function layoutPSP() {
   if (!pspRenderer || !pspCamera || !DOM.viewPsp) return;
   const W = DOM.viewPsp.clientWidth;
@@ -822,8 +825,7 @@ function layoutPSP() {
     pspRenderer.setSize(W, H, false);
   }
 
-  // Hueco reservado abajo para el botón "Volver al menú" (en móvil
-  // horizontal el botón va arriba a la izquierda y no hace falta)
+  // Hueco reservado abajo para el botón "Volver al menú"
   const shortLandscape = H < 520 && W > H;
   const reserve = shortLandscape ? 0 : Math.min(96, H * 0.12);
   const Ha = H - reserve;
@@ -831,61 +833,76 @@ function layoutPSP() {
   const pspW = pspScene.userData.pspW || PSP_TARGET_SIZE;
   const pspH = pspScene.userData.pspH || PSP_TARGET_SIZE * 0.44;
   const R = PSP_SCREEN_RECT;
-  const scrW = R.x1 - R.x0, scrH = R.y1 - R.y0;
+  const scrW = R.x1 - R.x0;
 
   const tanHalf = Math.tan(THREE.MathUtils.degToRad(pspCamera.fov / 2));
   pspCamera.aspect = W / H;
 
-  // ── ESCRITORIO: exactamente igual que antes (cámara en z = 12 y la
-  //    pantalla con su tamaño de siempre). Solo si la PSP cabe entera y
-  //    la pantalla no queda pequeña; si no, se usa el encuadre responsive.
+  const setFullscreen = (on) => {
+    pspFullscreen = on;
+    document.body.classList.toggle('psp-fullscreen', on);
+  };
+
+  // Proyecta la pantalla 3D a píxeles y coloca #psp-screen encima
+  const placeProjected = () => {
+    pspCamera.updateMatrixWorld();
+    const proj = (x, y) => {
+      const v = new THREE.Vector3(x, y, R.z).project(pspCamera);
+      return { x: (v.x + 1) / 2 * W, y: (1 - v.y) / 2 * H };
+    };
+    const tl = proj(R.x0, R.y1);
+    const br = proj(R.x1, R.y0);
+    if (DOM.pspScreen) Object.assign(DOM.pspScreen.style, {
+      left: tl.x + 'px', top: tl.y + 'px',
+      width: (br.x - tl.x) + 'px', height: (br.y - tl.y) + 'px',
+    });
+  };
+
+  // ── 1. ESCRITORIO: cámara como siempre (z = 12). Si la pantalla de
+  //    siempre (712px) coincide con la de la PSP, se usa tal cual; en
+  //    pantallas más grandes (1920, QHD, 4K) la PSP crece con la ventana y
+  //    la pantalla se ajusta para seguir encajando.
   const pOrig = H / (2 * (12 - R.z) * tanHalf);
   if (!shortLandscape && pOrig * pspW <= W * 0.98 && pOrig * scrW >= PSP_MIN_SCREEN_PX) {
+    setFullscreen(false);
     pspCamera.position.set(0, 0, 12);
     pspCamera.lookAt(0, 0, 0);
     pspCamera.updateProjectionMatrix();
+
     const w = Math.min(712, 0.58 * W);           // = width: min(712px, 58vw)
-    const h = w * 295 / 480;                     // = aspect-ratio: 480 / 295
-    if (DOM.pspScreen) Object.assign(DOM.pspScreen.style, {
-      left: (W - w) / 2 + 'px',
-      top:  (H - h - 0.055 * H) / 2 + 'px',      // = margin-top: -5.5vh
-      width: w + 'px', height: h + 'px',
-    });
+    const projW = pOrig * scrW;
+    if (Math.abs(w - projW) / projW <= 0.08) {
+      const h = w * 295 / 480;                   // = aspect-ratio: 480 / 295
+      if (DOM.pspScreen) Object.assign(DOM.pspScreen.style, {
+        left: (W - w) / 2 + 'px',
+        top:  (H - h - 0.055 * H) / 2 + 'px',    // = margin-top: -5.5vh
+        width: w + 'px', height: h + 'px',
+      });
+    } else {
+      placeProjected();
+    }
     return;
   }
 
-  // ── PANTALLAS PEQUEÑAS: encuadre responsive ──
-  const pWhole  = Math.min(0.92 * W / pspW, 0.86 * Ha / pspH);   // PSP entera
-  const pScreen = Math.min(0.95 * W / scrW, 0.90 * Ha / scrH);   // pantalla lo más grande posible
-  const pMin    = PSP_MIN_SCREEN_PX / scrW;
-  const p = Math.max(pWhole, Math.min(pScreen, pMin));
+  // ── 2. PANTALLAS MEDIANAS: la PSP entera, encajada en la ventana
+  const p = Math.min(0.92 * W / pspW, 0.86 * Ha / pspH);
 
-  // Al hacer zoom se centra la pantalla; con la PSP entera, la PSP
-  const t = Math.min(1, Math.max(0, (p / pWhole - 1) / 0.25));
-  const cx = t * (R.x0 + R.x1) / 2;
-  const cy = t * (R.y0 + R.y1) / 2 - reserve / (2 * p);
-
-  const dist = H / (2 * p * tanHalf);
-  pspCamera.position.set(cx, cy, R.z + dist);
-  pspCamera.lookAt(cx, cy, 0);
-  pspCamera.updateProjectionMatrix();
-  pspCamera.updateMatrixWorld();
-
-  // Proyectar las esquinas de la pantalla 3D a píxeles
-  const proj = (x, y) => {
-    const v = new THREE.Vector3(x, y, R.z).project(pspCamera);
-    return { x: (v.x + 1) / 2 * W, y: (1 - v.y) / 2 * H };
-  };
-  const tl = proj(R.x0, R.y1);
-  const br = proj(R.x1, R.y0);
-  if (DOM.pspScreen) {
-    Object.assign(DOM.pspScreen.style, {
-      left:   tl.x + 'px',
-      top:    tl.y + 'px',
-      width:  (br.x - tl.x) + 'px',
-      height: (br.y - tl.y) + 'px',
-    });
+  // ── 3. MÓVIL / TABLET: si así la pantalla de la PSP quedaría demasiado
+  //    pequeña para leer, se quita la PSP y la info va a pantalla completa
+  //    (lo hace el CSS con la clase .psp-fullscreen)
+  if (p * scrW < PSP_FULLSCREEN_BELOW_PX) {
+    setFullscreen(true);
+    if (DOM.pspScreen) Object.assign(DOM.pspScreen.style, { left: '', top: '', width: '', height: '' });
+    return;
   }
+
+  setFullscreen(false);
+  const dist = H / (2 * p * tanHalf);
+  const cy = -reserve / (2 * p);
+  pspCamera.position.set(0, cy, R.z + dist);
+  pspCamera.lookAt(0, cy, 0);
+  pspCamera.updateProjectionMatrix();
+  placeProjected();
 }
 
 function makeFallbackPSP() {
@@ -913,6 +930,7 @@ function makeFallbackPSP() {
 /* ═══ PANTALLA ═══ */
 function bootScreen(game) {
   if (DOM.sgBody) DOM.sgBody.scrollTop = 0;
+  if (DOM.sgContent) DOM.sgContent.scrollTop = 0;   // a pantalla completa, empezar arriba
 
   // Siempre arrancar mostrando la portada, no la info de la vez anterior
   if (DOM.sgContent) DOM.sgContent.classList.remove('showing-info');
@@ -1080,7 +1098,7 @@ function animLoop() {
   // El tamaño lo gestiona layoutPSP() al redimensionar; antes se
   // comparaba con devicePixelRatio sin limitar y en móviles con DPR 3
   // se recreaba el buffer en CADA frame.
-  if (pspRenderer && pspModel && appState !== 'carousel') {
+  if (pspRenderer && pspModel && appState !== 'carousel' && !pspFullscreen) {
     pspRenderer.render(pspScene, pspCamera);
   }
 }

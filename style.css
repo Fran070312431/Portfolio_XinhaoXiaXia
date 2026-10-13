@@ -15,11 +15,25 @@
   --ui: 'Abel', sans-serif;
 }
 
+/* ── La página NO se desliza: en el móvil al arrastrar hacia abajo el
+   navegador "estiraba" la página y se veía blanco por detrás. ── */
+html {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  /* por si algún navegador aún rebota, que detrás se vea el color del fondo */
+  background: linear-gradient(#a9bdca, #779bba);
+}
+
 body {
   margin: 0;
   padding: 0;
   width: 100vw;  
-  background-color: #ffffff;
+  position: fixed;      /* iPhone: así Safari no deja arrastrar la página */
+  inset: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background-color: #a9bdca;
   background-image: url('imagenes/Fondo.jpg'); /* F mayúscula: en un servidor (GitHub Pages...) sí importa */
   background-repeat: no-repeat;
   background-size: 100% auto;
@@ -465,11 +479,19 @@ body {
 .sg-bg {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 30%, #1c5f95 0%, #123061 55%, #070c17 100%);
+  /* ── FONDO DE LA PANTALLA DE LA PSP ──
+     Usa imagenes/Fondo_psp.jpg. Mientras no exista ese archivo se ve
+     Fondo.jpg (la capa de debajo), así nunca queda en blanco.
+     Si tu imagen es .png o .webp, cambia la extensión aquí. */
+  background:
+    url('imagenes/Fondo_psp.jpg') center / cover no-repeat,
+    url('imagenes/Fondo.jpg') center / cover no-repeat,
+    #a9bdca;
   z-index: 1;
 }
 
 .sg-wave {
+  display: none;   /* las rayas iban con el fondo azul antiguo */
   position: absolute;
   inset: 0;
   background: repeating-linear-gradient(
@@ -527,6 +549,7 @@ body {
 .sg-info-page {
   transform: translateY(100%);
   overflow-y: auto;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   display: flex;
@@ -1080,3 +1103,210 @@ body {
   color: var(--mid);
 }
 .xmb-item.active .xmb-item-icon i { color: rgba(255,255,255,0.7); }
+
+
+/* ═══════════════════════════════════════════════
+   TEXTOS DE LA INFO SOBRE EL FONDO CLARO
+   Con el fondo azul oscuro los textos eran blancos; sobre Fondo_psp
+   (claro) no se leían, así que pasan al mismo gris oscuro del resto de
+   la web. Los botones JUGAR / VER GDD solo cambian de color (oscuros
+   como los demás botones), mismo tamaño y forma.
+═══════════════════════════════════════════════ */
+.sg-title-info { color: var(--dark); }
+.sg-desc       { color: rgba(37, 37, 37, .85); }
+.sg-year       { color: rgba(37, 37, 37, .6); }
+.sg-tag        { background: rgba(255, 255, 255, .6); }
+.psp-act-btn {
+  background: var(--dark);
+  border-color: rgba(0, 0, 0, .25);
+  box-shadow: 0 4px 0 rgba(0,0,0,.35), 0 6px 14px rgba(0,0,0,.25);
+}
+.psp-act-btn:hover { background: #3a3a3a; }
+/* la flecha, cuando está sobre la info (fondo claro), en oscuro */
+.sg-content.showing-info + .sg-scroll-arrow { color: var(--dark); text-shadow: none; }
+
+/* ═══════════════════════════════════════════════
+   PANTALLAS MÁS ALTAS QUE 16:9 (16:10, 4:3...)
+   El fondo cubre todo el alto (en 16:9 se ve igual que antes).
+═══════════════════════════════════════════════ */
+@media (max-aspect-ratio: 16/9) and (min-width: 701px) {
+  body { background-size: cover; }
+}
+
+/* ═══════════════════════════════════════════════
+   PANTALLAS GRANDES (QHD 2560×1440, 4K 3840×2160...)
+   Hasta 1920×1080 todo se queda igual. Por encima, todo se escala en
+   proporción a como se ve en 1920×1080: --u es "1px de 1080p".
+═══════════════════════════════════════════════ */
+@media (min-width: 1921px) and (min-height: 1081px) {
+  :root {
+    --u: calc(min(100dvh, 56.25vw) / 1080);
+    --disc: calc(280 * var(--u));
+    --disc-gap: calc(50 * var(--u));
+  }
+
+  #header       { margin-top: calc(18 * var(--u)); }
+  .header-name  { font-size: calc(22 * var(--u)); letter-spacing: calc(1 * var(--u)); margin-bottom: calc(4 * var(--u)); }
+  .header-title { font-size: calc(45 * var(--u)); margin-bottom: calc(4 * var(--u)); }
+  .header-sub   { font-size: calc(16 * var(--u)); letter-spacing: calc(3 * var(--u)); }
+  #label-select { font-size: calc(13 * var(--u)); letter-spacing: calc(3 * var(--u)); margin-top: calc(15 * var(--u)); }
+
+  #game-name-display  { font-size: calc(28 * var(--u)); margin: calc(15 * var(--u)) 0 calc(5 * var(--u)); min-height: calc(34 * var(--u)); }
+  #game-genre-display { font-size: calc(14 * var(--u)); letter-spacing: calc(2 * var(--u)); margin-bottom: calc(15 * var(--u)); min-height: calc(25 * var(--u)); }
+
+  #carousel-outer { margin-top: calc(4 * var(--u)); }
+  #carousel-track { padding: calc(50 * var(--u)) 0; }
+  .umd-shadow     { width: calc(140 * var(--u)); height: calc(14 * var(--u)); margin-top: calc(-8 * var(--u)); }
+
+  #carousel-nav { gap: calc(12 * var(--u)); margin: calc(8 * var(--u)) 0 calc(6 * var(--u)); }
+  #dots-nav     { gap: calc(8 * var(--u)); }
+  .nav-dot        { width: calc(8 * var(--u)); height: calc(8 * var(--u)); }
+  .nav-dot.active { width: calc(20 * var(--u)); height: calc(8 * var(--u)); border-radius: calc(4 * var(--u)); }
+
+  .arr-btn {
+    font-size: calc(11 * var(--u)); letter-spacing: calc(2 * var(--u));
+    padding: calc(9 * var(--u)) calc(14 * var(--u)); border-radius: calc(4 * var(--u));
+    box-shadow: 0 calc(4 * var(--u)) 0 rgba(0,0,0,.4), 0 calc(8 * var(--u)) calc(24 * var(--u)) rgba(0,0,0,.4);
+  }
+  #btn-insert {
+    font-size: calc(13 * var(--u)); letter-spacing: calc(2 * var(--u));
+    padding: calc(11 * var(--u)) calc(26 * var(--u)); border-radius: calc(4 * var(--u));
+    margin: calc(4 * var(--u)) 0 calc(16 * var(--u));
+    box-shadow: 0 calc(4 * var(--u)) 0 rgba(0,0,0,.4), 0 calc(8 * var(--u)) calc(24 * var(--u)) rgba(0,0,0,.4);
+  }
+  #btn-insert::before { font-size: calc(10 * var(--u)); }
+  #btn-back {
+    bottom: calc(24 * var(--u));
+    font-size: calc(13 * var(--u)); letter-spacing: calc(2 * var(--u));
+    padding: calc(11 * var(--u)) calc(26 * var(--u)); border-radius: calc(4 * var(--u));
+    box-shadow: 0 calc(4 * var(--u)) 0 rgba(0,0,0,.4), 0 calc(8 * var(--u)) calc(24 * var(--u)) rgba(0,0,0,.4);
+  }
+  #btn-back::before { font-size: calc(10 * var(--u)); }
+}
+
+/* Textos de la pantalla de la PSP cuando la pantalla es más grande que
+   la de siempre (712px): crecen en la misma proporción.
+   --s = 1px de la pantalla de 712px. */
+@container (min-width: 760px) {
+  .sg-topbar, #screen-idle, .sg-body { --s: calc(100cqw / 712); }
+
+  .sg-topbar { padding: calc(6 * var(--s)) calc(12 * var(--s)) calc(5 * var(--s)); }
+  .sg-time, .sg-console, .sg-battery { font-size: calc(10 * var(--s)); letter-spacing: calc(1 * var(--s)); }
+  .screen-psp-logo { font-size: calc(32 * var(--s)); }
+  .screen-psp-sub  { font-size: calc(8 * var(--s)); letter-spacing: calc(5 * var(--s)); }
+
+  .sg-hero-spacer { padding: 0 calc(12 * var(--s)) calc(8 * var(--s)); }
+  .sg-info-page   { padding: calc(16 * var(--s)) calc(14 * var(--s)) calc(32 * var(--s)); }
+  .sg-info-top    { margin-bottom: calc(10 * var(--s)); }
+  .sg-title-info  { font-size: calc(24 * var(--s)); margin-bottom: calc(3 * var(--s)); }
+  .sg-genre-info  { font-size: calc(14 * var(--s)); letter-spacing: calc(2 * var(--s)); }
+  .sg-desc        { font-size: calc(16 * var(--s)); margin-bottom: calc(14 * var(--s)); }
+  .sg-meta-row    { gap: calc(10 * var(--s)); margin-bottom: calc(12 * var(--s)); }
+  .sg-tags        { gap: calc(6 * var(--s)); }
+  .sg-tag         { font-size: calc(12 * var(--s)); padding: calc(3 * var(--s)) calc(7 * var(--s)); border-radius: calc(3 * var(--s)); }
+  .sg-year        { font-size: calc(14 * var(--s)); letter-spacing: calc(1 * var(--s)); }
+  .sg-actions     { gap: calc(10 * var(--s)); }
+  .psp-act-btn {
+    max-width: calc(140 * var(--s)); gap: calc(6 * var(--s));
+    font-size: calc(11 * var(--s)); letter-spacing: calc(1 * var(--s));
+    padding: calc(8 * var(--s)) calc(10 * var(--s)); border-radius: calc(4 * var(--s));
+  }
+  .psp-icon { font-size: calc(11 * var(--s)); }
+  .sg-scroll-arrow { font-size: calc(14 * var(--s)); bottom: calc(8 * var(--s)); padding: calc(6 * var(--s)) calc(12 * var(--s)); }
+}
+
+/* ═══════════════════════════════════════════════
+   PANTALLA COMPLETA (móvil y tablet)
+   Cuando la PSP no cabe a un tamaño legible, main.js añade la clase
+   .psp-fullscreen al <body>: se quita la PSP y la pantalla ocupa TODA la
+   pantalla del móvil. Arriba la portada, debajo la info (se baja con el
+   dedo), y un botón con flecha para volver arriba a la izquierda.
+═══════════════════════════════════════════════ */
+.psp-fullscreen #psp-canvas { display: none; }
+
+.psp-fullscreen #psp-screen {
+  left: 0 !important;
+  top: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 0;
+}
+
+/* sin la barra de hora/batería: el botón de volver va en esa esquina */
+.psp-fullscreen .sg-topbar { display: none; }
+
+/* portada arriba e info debajo, en una sola columna con scroll */
+.psp-fullscreen .sg-content {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.psp-fullscreen .sg-content::-webkit-scrollbar { display: none; }
+
+.psp-fullscreen .sg-hero-spacer,
+.psp-fullscreen .sg-info-page,
+.psp-fullscreen .sg-content.showing-info .sg-hero-spacer,
+.psp-fullscreen .sg-content.showing-info .sg-info-page {
+  position: relative;
+  inset: auto;
+  transform: none;
+  transition: none;
+}
+.psp-fullscreen .sg-hero-spacer {
+  width: 100%;
+  aspect-ratio: 16 / 9;        /* las portadas son 16:9: se ven enteras */
+  background-size: cover;
+  padding: 0;
+}
+.psp-fullscreen .sg-hero-spacer::after { display: none; }
+.psp-fullscreen .sg-info-page {
+  overflow: visible;
+  margin: 0;
+  padding: 22px 20px calc(32px + env(safe-area-inset-bottom, 0px));
+  min-height: calc(100% - 56.25vw);   /* que la info llene lo que queda debajo */
+}
+/* la flecha ya no hace falta: se baja con el dedo */
+.psp-fullscreen .sg-scroll-arrow { display: none; }
+
+/* Botón de volver: solo una flecha, mismo estilo que las flechas del
+   carrusel, arriba a la izquierda (encima de la portada) */
+.psp-fullscreen #btn-back {
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  bottom: auto;
+  left: calc(12px + env(safe-area-inset-left, 0px));
+  transform: none;
+  font-size: 0;                 /* oculta el texto "VOLVER AL MENÚ" */
+  letter-spacing: 0;
+  padding: 9px 14px;
+  line-height: 1;
+}
+.psp-fullscreen #btn-back::before {
+  content: '\f060';            /* flecha izquierda de Font Awesome */
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  font-size: 14px;
+}
+.psp-fullscreen #btn-back:hover  { transform: translateY(-2px); }
+.psp-fullscreen #btn-back:active { transform: translateY(2px); }
+
+/* Textos legibles a pantalla completa */
+.psp-fullscreen .sg-info-top   { margin-bottom: 14px; }
+.psp-fullscreen .sg-title-info { font-size: 24px; }
+.psp-fullscreen .sg-genre-info { font-size: 13px; }
+.psp-fullscreen .sg-desc       { font-size: 16px; line-height: 1.6; margin-bottom: 20px; }
+.psp-fullscreen .sg-meta-row   { margin-bottom: 18px; flex-wrap: wrap; }
+.psp-fullscreen .sg-tag        { font-size: 11px; padding: 4px 8px; }
+.psp-fullscreen .sg-year       { font-size: 13px; }
+.psp-fullscreen .psp-act-btn   { font-size: 12px; padding: 12px 14px; max-width: 180px; }
+.psp-fullscreen .psp-icon      { font-size: 12px; }
+.psp-fullscreen .screen-psp-logo { font-size: 40px; }
+.psp-fullscreen .screen-psp-sub  { font-size: 10px; }
+
+/* Móvil en horizontal a pantalla completa: la portada no ocupa toda la
+   altura, para que se vea que hay info debajo */
+@media (max-height: 520px) and (orientation: landscape) {
+  .psp-fullscreen .sg-hero-spacer { width: auto; height: 78dvh; aspect-ratio: auto; background-size: contain; }
+  .psp-fullscreen .sg-info-page   { min-height: 0; padding: 16px 24px 28px; }
+  .psp-fullscreen .sg-desc { font-size: 15px; margin-bottom: 12px; }
+}
