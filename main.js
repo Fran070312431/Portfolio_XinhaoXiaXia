@@ -1,14 +1,27 @@
 /* PSP PORTFOLIO — main.js */
 
-/* ▼▼▼ EDITA TUS JUEGOS ▼▼▼ */
+/* ▼▼▼ EDITA TUS JUEGOS ▼▼▼
+   desc      → párrafos de la descripción (uno por línea de la lista)
+   features  → (opcional) características: [título, texto]
+   roleTitle → tu papel en el juego; role → lo que hiciste (una línea por punto)
+   gameJam   → true si se hizo en una game jam (sale la etiqueta "GAME JAM")
+*/
 const GAMES = [
-  { 
-    title:"Corazón de Guerra",  
-    genre:"Plataforma y puzle",       
-    year:"2024", 
-    desc:"Vive la aventura de Hermes, un jóven que se ve obligado a servir en el ejército como mensajero. Observa el deterioro de la guerra desde la perspectiva de un niño.", 
-    tags:["Construct 3","2D","Pixel Art","Narrativa"],    
-    discColor:"#5b4100", 
+  {
+    title:"Corazón de Guerra",
+    genre:"Plataforma y puzle",
+    year:"2024",
+    desc:[
+      "Vive la aventura de Hermes, un joven que se ve obligado a servir en el ejército como mensajero. Observa el deterioro de la guerra desde la perspectiva de un niño."
+    ],
+    roleTitle:"Arte y diseño",
+    role:[
+      "Fondos de la trinchera, de la pantalla de inicio y de la casa.",
+      "Idea de la narrativa.",
+      "Diseño del nivel."
+    ],
+    tags:["Construct 3","2D","Pixel Art","Narrativa"],
+    discColor:"#5b4100",
     accentColor:"#b58200",
     cover: "cover/Corazon_cover.webp",
     discModel: "models/Corazon_de_guerra.glb",
@@ -16,13 +29,31 @@ const GAMES = [
     playUrl: "https://xiilastudio.itch.io/corazon-de-guerra",
     gddUrl: "docs/GDD_Corazon.pdf"
   },
-  { 
-    title:"Que no te Coma el Amor",     
-    genre:"Narrativa y simulador de citas",            
-    year:"2024", 
-    desc:"En este juego inspirado en la película Tesis, te pondrás en la piel de un estudiante de cine mientras intentas acercarte a Chema y Bosco.", 
-    tags:["Construct 3","Game Jam","Narrativa"],      
-    discColor:"#4e0000", 
+  {
+    title:"Que no te Coma el Amor",
+    genre:"Narrativa y simulador de citas",
+    year:"2024",
+    gameJam: true,
+    desc:[
+      "¿Qué pasa si el amor también oculta un misterio?",
+      "En este juego inspirado en la película Tesis, te pondrás en la piel de un estudiante de cine mientras intentas acercarte a Chema y Bosco. ¿Será un simple juego de citas, o hay algo más bajo la superficie?",
+      "Tu objetivo es interactuar con los personajes, elegir tus respuestas con cuidado y descubrir los secretos ocultos detrás de sus palabras. ¡Pero atención! Hay más de lo que parece.",
+      "Cuando veas el ícono de una en la parte superior derecha, actívalo para explorar el escenario. Busca un símbolo especial, una \",\", y arrástralo a una de las respuestas para cambiar su significado. Esto te permitirá desbloquear pistas y progresar hacia el verdadero final.",
+      "¿Estás listo para descifrar la verdad y conquistar sus corazones... o sus secretos?"
+    ],
+    features:[
+      ["Narrativa ramificada", "Cada decisión influye directamente en el desarrollo de la trama. Desde conversaciones triviales hasta momentos críticos, cada acción te acerca a un final diferente."],
+      ["Poder de la coma", "Usa la coma para alterar el significado y la historia en la opción principal."]
+    ],
+    roleTitle:"Arte y dirección visual",
+    role:[
+      "Fondos de cada escena.",
+      "Logo del juego.",
+      "Definición del estilo visual del juego.",
+      "Apoyo en la implementación de las expresiones de los personajes en cada diálogo."
+    ],
+    tags:["Construct 3","Game Jam","Narrativa"],
+    discColor:"#4e0000",
     accentColor:"#b90000",
     cover: "cover/Coma_cover.webp",
     discModel: "models/Que_no_te_coma_el_amor.glb",
@@ -30,13 +61,24 @@ const GAMES = [
     playUrl: "https://axiada.itch.io/tesiscoma",
     gddUrl: "docs/GDD_Amor.pdf"
   },
-  { 
-    title:"Clashing Blocks",    
-    genre:"Rompecabezas y plataformas", 
-    year:"2025", 
-    desc:"El mago Alexias protege sus cereales supremos. El caballero Pavel, hambriento, ha escalado la torre para robárselos. Un duelo absurdo donde el desayuno es el premio.", 
-    tags:["Unity","2D","Pixel Art","Cooperativo local"],         
-    discColor:"#29003e", 
+  {
+    title:"Clashing Blocks",
+    genre:"Rompecabezas y plataformas",
+    year:"2025",
+    desc:[
+      "El mago Alexias protege sus cereales supremos. El caballero Pavel, hambriento, ha escalado la torre para robárselos. Un duelo absurdo donde el desayuno es el premio."
+    ],
+    roleTitle:"Arte y diseño",
+    role:[
+      "Arte y animación del fondo.",
+      "Pixel art del HUD y diseño de la interfaz.",
+      "Diseño y pixel art de los retratos del mago y del caballero.",
+      "Diseño del sistema de vida.",
+      "Animación del cereal del final.",
+      "Apoyo en el diseño de mecánicas."
+    ],
+    tags:["Unity","2D","Pixel Art","Cooperativo local"],
+    discColor:"#29003e",
     accentColor:"#8101c1",
     cover: "cover/Clashing_cover.webp",
     discModel: "models/Clashing_blocks.glb",
@@ -44,13 +86,21 @@ const GAMES = [
     playUrl: "https://clashing-blocks.itch.io/clashing-blocks",
     gddUrl: "docs/GDD_ClashingBlocks.pdf"
   },
-  { 
-    title:"Rush Hour",       
-    genre:"Juego de Lógica",         
-    year:"2026", 
-    desc:"El objetivo principal del jugador es sacar un coche específico, a través de la única salida del tablero desplazando los coches que bloquean el camino.", 
-    tags:["Unity","C#","2D","Lógica"],              
-    discColor:"#6a2300", 
+  {
+    title:"Rush Hour",
+    genre:"Juego de Lógica",
+    year:"2026",
+    desc:[
+      "Versión digital del clásico juego de mesa de lógica. Tu objetivo es sacar el coche rojo del atasco deslizando el resto de vehículos por el tablero: cada coche solo puede moverse hacia delante o hacia atrás, así que cada movimiento cuenta.",
+      "Cada nivel es un pequeño puzle con una única salida. Un desarrollo exprés centrado en trasladar a la pantalla las reglas y la sensación del tablero físico."
+    ],
+    roleTitle:"Desarrollo completo en solitario",
+    role:[
+      "Diseño, programación e implementación en Unity, todo hecho por mí.",
+      "Assets gráficos externos."
+    ],
+    tags:["Unity","C#","2D","Lógica"],
+    discColor:"#6a2300",
     accentColor:"#ed5001",
     cover: "cover/Rush_cover.webp",
     discModel: "models/Rush_hour.glb",
@@ -58,19 +108,79 @@ const GAMES = [
     playUrl: "https://itch.io",
     gddUrl: "docs/GDD_RushHour.pdf"
   },
-  { 
-    title:"Over Zhousands",        
-    genre:"Gestión de Recursos y Tropas",         
-    year:"2026", 
-    desc:"Juego post apocalíptico estilo cartoon donde controlas tu propia colonia de zombis. Construye tu aZentamiento para fortalecer tu horda.", 
-    tags:["Unity","3D","Gestión","Zombis"],           
-    discColor:"#0e4500", 
+  {
+    title:"Over Zhousands",
+    genre:"Gestión de Recursos y Tropas",
+    year:"2026",
+    desc:[
+      "Over Zhousands es un juego de ambientación postapocalíptica y estilo cartoon, de gestión de recursos y unidades, donde controlas tu propia colonia de zombis.",
+      "Construye tu aZentamiento para fortalecer a tu horda y atacar a los humanos supervivientes hasta dominar el territorio."
+    ],
+    roleTitle:"Diseñador",
+    role:[
+      "Diseño y montaje de los niveles (level design).",
+      "Core loop y mecánica de selección de zombis.",
+      "Diseño de la cámara.",
+      "Tipos de ataque de los zombis, y vida y daño de humanos y zombis.",
+      "Corrección de fallos en la destrucción de objetos y arreglo del NavMesh.",
+      "Scripts del hover de los botones y de la animación del logo del menú.",
+      "Logo del equipo Sick Gecko.",
+      "Concept art de las estructuras de la base humana y de la zombi.",
+      "Implementación en Unity de los assets externos."
+    ],
+    tags:["Unity","3D","Gestión","Zombis"],
+    discColor:"#0e4500",
     accentColor:"#1fb501",
     cover: "cover/Over_cover.webp",
     discModel: "models/Over_zhousands.glb",
     animModel: "models/Over_zhousands_anim.glb",
     playUrl: "https://sickgecko.itch.io/over-zhousands",
     gddUrl: "docs/GDD_OverZhousands.pdf"
+  },
+  {
+    title:"Drowned Cape - Cooming Soon",
+    genre:"Supervivencia y gestión con defensa",
+    year:"2026",
+    desc:[
+      ""
+    ],
+    roleTitle:"Diseñador",
+    role:[
+      "",
+      "",
+      ""
+    ],
+    tags:["Unity","3D","Supervivencia","Monstruos"],
+    discColor:"#00275b",
+    accentColor:"#0051b5",
+    cover: "cover/",
+    discModel: "models/Over_zhousands.glb",
+    animModel: "models/Over_zhousands_anim.glb",
+    playUrl: "",
+    gddUrl: "docs/"
+  },
+  {
+    title:"Cooming Soon",
+    genre:"",
+    year:"2026",
+    gameJam: true,
+    desc:[
+      ""
+    ],
+    roleTitle:"Diseñador",
+    role:[
+      "",
+      "",
+      ""
+    ],
+    tags:["Unity","3D"],
+    discColor:"#5b3800",
+    accentColor:"#b56700",
+    cover: "cover/",
+    discModel: "models/Over_zhousands.glb",
+    animModel: "models/Over_zhousands_anim.glb",
+    playUrl: "",
+    gddUrl: "docs/"
   }
 ];
 /* ▲▲▲ FIN EDICIÓN ▲▲▲ */
@@ -83,6 +193,7 @@ const INSERT_ANIM_OFFSET = [0, 0, 0];
 const INSERT_ANIM_TIMESCALE = 0.9;     
 const INSERT_ANIM_HOLD_MS   = 150;
 const PSP_BOOT_TRIGGER_MS   = 150;
+const PSP_LOAD_MS           = 750;   // lo que dura la pantalla de carga dentro de la PSP
 const SIDE_HIDE_OFFSET_PX   = 700;
 
 /* ═══ ANCHO DE CADA DISCO EN EL CARRUSEL ═══
@@ -139,8 +250,7 @@ let pspLastW = 0, pspLastH = 0;
 let DOM = {};
 
 function cacheDOM() {
-  DOM.loadBar          = document.querySelector('.load-bar');
-  DOM.loading          = document.getElementById('loading');
+  DOM.loadBar          = document.querySelector('.intro-load-bar');
   DOM.carouselOuter    = document.getElementById('carousel-outer');
   DOM.carouselTrack    = document.getElementById('carousel-track');
   DOM.dotsNav          = document.getElementById('dots-nav');
@@ -245,7 +355,7 @@ function playCircleWipe(originEl, onCovered, shrinkBack = true) {
 /* ═══ LOADING ═══
    La barra se busca ya aquí: antes se buscaba en cacheDOM(), que solo se
    llama al terminar de cargar, así que la barra nunca llegaba a moverse. */
-DOM.loadBar = document.querySelector('.load-bar');
+DOM.loadBar = document.querySelector('.intro-load-bar');
 let fakePct = 0;
 const fakeTimer = setInterval(() => {
   fakePct = Math.min(fakePct + Math.random() * 6, 60);
@@ -325,7 +435,7 @@ function init() {
   updateDots();
   updateScales();
 
-  if (DOM.loading) DOM.loading.classList.add('done');
+  introReady();   // ya se puede pasar del inicio al carrusel
   requestAnimationFrame(animLoop);
 }
 
@@ -520,7 +630,20 @@ function onUMDClick(idx) {
 
 function updateLabels() {
   const g = GAMES[currentIdx];
-  if (DOM.gameNameDisplay)  DOM.gameNameDisplay.textContent  = g.title;
+  if (DOM.gameNameDisplay) {
+    // El nombre va dentro de un <span> para poder colgarle en la esquina
+    // la etiqueta "GAME JAM" (solo en los juegos con gameJam: true)
+    const wrap = document.createElement('span');
+    wrap.className = 'gn-wrap';
+    wrap.textContent = g.title;
+    if (g.gameJam) {
+      const badge = document.createElement('span');
+      badge.className = 'jam-badge';
+      badge.textContent = 'GAME JAM';
+      wrap.appendChild(badge);
+    }
+    DOM.gameNameDisplay.replaceChildren(wrap);
+  }
   if (DOM.gameGenreDisplay) DOM.gameGenreDisplay.textContent = g.genre;
 }
 
@@ -939,7 +1062,15 @@ function bootScreen(game) {
     DOM.sgScrollArrowIcon.classList.remove('fa-chevron-up');
   }
 
-  if (DOM.screenIdle) DOM.screenIdle.style.display = 'flex';
+  // Pantalla de carga de la PSP (solo aquí, al insertar el cartucho):
+  // parpadeo de encendido y luego la barra se llena en PSP_LOAD_MS
+  if (DOM.screenIdle) {
+    DOM.screenIdle.style.display = 'flex';
+    DOM.screenIdle.style.setProperty('--psp-load-ms', PSP_LOAD_MS + 'ms');
+    DOM.screenIdle.classList.remove('loading');
+    void DOM.screenIdle.offsetWidth;          // reinicia la animación de la barra
+    DOM.screenIdle.classList.add('loading');
+  }
   if (DOM.screenGame) DOM.screenGame.classList.remove('active');
   if (DOM.pspScreen)  DOM.pspScreen.classList.add('screen-booting');
 
@@ -964,7 +1095,7 @@ function bootScreen(game) {
     }
 
     if (DOM.sgYear) DOM.sgYear.textContent = game.year;
-    if (DOM.sgDesc) DOM.sgDesc.textContent = game.desc;
+    if (DOM.sgDesc) renderDesc(game);
 
     // Imagen de portada — se pone como fondo del div #sg-bg-img,
     // que es el elemento que de verdad tiene el CSS de background-size:cover.
@@ -984,7 +1115,51 @@ function bootScreen(game) {
     }
 
     updateClock();
-  }, 300);
+  }, 300 + PSP_LOAD_MS);
+}
+
+/* Descripción del juego en la pantalla de la PSP: párrafos, características
+   (si las hay) y "Mi papel". Se crea con elementos de texto, sin innerHTML. */
+function renderDesc(game) {
+  const el = DOM.sgDesc;
+  const make = (tag, cls, text) => {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  };
+  const list = (items, withTitles) => {
+    const ul = make('ul', 'sg-list');
+    items.forEach(it => {
+      const li = make('li');
+      if (withTitles) {
+        li.appendChild(make('strong', null, it[0] + ': '));
+        li.appendChild(document.createTextNode(it[1]));
+      } else {
+        li.textContent = it;
+      }
+      ul.appendChild(li);
+    });
+    return ul;
+  };
+
+  el.style.setProperty('--accent', game.accentColor);
+  const parts = [];
+  const paras = Array.isArray(game.desc) ? game.desc : [game.desc];
+  paras.forEach(t => parts.push(make('p', null, t)));
+
+  if (game.features && game.features.length) {
+    parts.push(make('h3', 'sg-sub', 'Características principales'));
+    parts.push(list(game.features, true));
+  }
+  if (game.role && game.role.length) {
+    const h = make('h3', 'sg-sub', 'Mi papel');
+    if (game.roleTitle) h.appendChild(make('span', 'sg-sub-role', ' · ' + game.roleTitle));
+    parts.push(h);
+    parts.push(list(game.role, false));
+  }
+  el.replaceChildren(...parts);
+  if (DOM.sgInfoPage) DOM.sgInfoPage.scrollTop = 0;
 }
 
 function updateClock() {
@@ -996,6 +1171,77 @@ function updateClock() {
   }
 }
 
+/* ═══ PANTALLA DE INICIO ═══
+   Se cierra (sube) con un poco de scroll, deslizando hacia arriba en el
+   móvil, con las teclas ↓ / espacio / Enter, o tocándola. Mientras está
+   abierta, el carrusel de debajo no reacciona a teclas ni gestos. */
+const introEl = document.getElementById('intro');
+let introOpen = !!introEl;
+let appReady = false;          // true cuando los modelos 3D ya han cargado
+let introWantsClose = false;   // se pidió pasar antes de terminar de cargar
+
+function closeIntro() {
+  if (!introOpen) return;
+  if (!appReady) {             // aún cargando: pasa en cuanto termine
+    introWantsClose = true;
+    if (introEl) introEl.classList.add('waiting');
+    return;
+  }
+  introOpen = false;
+  introEl.classList.add('gone');
+  setTimeout(() => { introEl.hidden = true; }, 1000);
+}
+
+function introReady() {
+  appReady = true;
+  if (introEl) introEl.classList.add('ready');   // oculta la barra fina de carga
+  if (introWantsClose) closeIntro();
+  if (!introEl) introOpen = false;
+}
+
+/* Tus SVG (game_Design.svg y PORTFOLIO.svg) se meten dentro de la página:
+   como <img> el navegador no deja que un SVG cargue su fuente, y el texto
+   saldría con otra letra. Dentro de la página usan Pixelify Sans, que ya
+   carga index.html. Se quita su <style> para que no cambie la fuente del
+   resto de la web. Si algo falla (p. ej. abriendo el archivo sin
+   servidor), se quedan como <img>. */
+document.querySelectorAll('#intro img.intro-svg').forEach(img => {
+  fetch(img.getAttribute('src'))
+    .then(r => r.ok ? r.text() : Promise.reject())
+    .then(txt => {
+      const doc = new DOMParser().parseFromString(txt, 'image/svg+xml');
+      const svg = doc.documentElement;
+      if (!svg || svg.nodeName.toLowerCase() !== 'svg') return;
+      svg.querySelectorAll('style').forEach(st => st.remove());
+      // filtro retro (definido en index.html, #retroFx) aplicado por dentro:
+      // así se calcula una vez y el movimiento no lo vuelve a recalcular
+      const fx = doc.createElementNS('http://www.w3.org/2000/svg', 'g');
+      fx.setAttribute('filter', 'url(#retroFx)');
+      while (svg.firstChild) fx.appendChild(svg.firstChild);
+      svg.appendChild(fx);
+      svg.removeAttribute('width');
+      svg.removeAttribute('height');
+      svg.setAttribute('class', img.className);
+      svg.setAttribute('aria-hidden', 'true');
+      svg.setAttribute('focusable', 'false');
+      img.replaceWith(document.importNode(svg, true));
+    })
+    .catch(() => {});
+});
+
+if (introEl) {
+  window.addEventListener('wheel', e => {
+    if (introOpen && e.deltaY > 6) closeIntro();
+  }, { passive: true });
+
+  let introY = null;
+  introEl.addEventListener('touchstart', e => { introY = e.touches[0].clientY; }, { passive: true });
+  introEl.addEventListener('touchmove', e => {
+    if (introY !== null && introY - e.touches[0].clientY > 35) { introY = null; closeIntro(); }
+  }, { passive: true });
+  introEl.addEventListener('click', closeIntro);
+}
+
 /* ═══ EVENTOS ═══ */
 document.getElementById('arr-left').onclick   = () => navigate(-1);
 document.getElementById('arr-right').onclick  = () => navigate(1);
@@ -1003,6 +1249,10 @@ document.getElementById('btn-insert').onclick = startInsert;
 document.getElementById('btn-back').onclick   = goBack;
 
 window.addEventListener('keydown', e => {
+  if (introOpen) {
+    if (['ArrowDown', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); closeIntro(); }
+    return;
+  }
   if(e.key==='ArrowLeft')  navigate(-1);
   if(e.key==='ArrowRight') navigate(1);
   // Si el foco está en un botón/enlace, Enter ya lo pulsa el navegador.
@@ -1030,6 +1280,7 @@ let tx = null;
 document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, {passive:true});
 document.addEventListener('touchend', e => {
   if(tx === null) return;
+  if(introOpen) { tx = null; return; }   // en la pantalla de inicio no se mueve el carrusel
   const dx = e.changedTouches[0].clientX - tx; tx = null;
   if(Math.abs(dx) > 50) navigate(dx < 0 ? 1 : -1);
 });
@@ -1038,10 +1289,16 @@ document.addEventListener('touchend', e => {
 let time = 0;
 const clock = new THREE.Clock();
 
+let introFirstFrame = true;
 function animLoop() {
   requestAnimationFrame(animLoop);
   const dt = Math.min(clock.getDelta(), 0.05);
   time += dt;
+
+  // Con la pantalla de inicio delante no se ve nada de esto: se dibuja una
+  // vez (para que esté listo) y luego se pausa hasta que se cierre.
+  if (introOpen && !introFirstFrame) return;
+  introFirstFrame = false;
 
   if (appState === 'carousel' || appState === 'inserting') {
     const target = centeredOffset(currentIdx);
@@ -1090,8 +1347,12 @@ function animLoop() {
   });
 
   if (insertAnimPlaying && activeInsertAnim) {
-    activeInsertAnim.mixer.update(dt);
-    activeInsertAnim.renderer.render(activeInsertAnim.scene, activeInsertAnim.camera);
+    // Se guarda en una variable: mixer.update() puede lanzar el aviso de
+    // "animación terminada", que pone activeInsertAnim a null, y la línea
+    // siguiente daba error (Cannot read properties of null)
+    const anim = activeInsertAnim;
+    anim.mixer.update(dt);
+    anim.renderer.render(anim.scene, anim.camera);
   }
 
   // La PSP solo se dibuja cuando se ve (o está entrando/saliendo).

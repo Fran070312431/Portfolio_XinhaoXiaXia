@@ -19,11 +19,39 @@
   <link rel="apple-touch-icon" href="favicon/Logo.png">
 </head>
 <body>
-<div id="loading">
-  <div class="load-logo">PSP</div>
-  <div class="load-sub">loading portfolio</div>
-  <div class="load-bar-wrap"><div class="load-bar"></div></div>
-</div>
+<!-- Pantalla de inicio: se va hacia arriba al hacer scroll / deslizar.
+     Usa tus SVG de imagenes/ (main.js los mete dentro de la página para
+     que se vean con la letra Pixelify Sans). -->
+<section id="intro" aria-label="Inicio del portfolio">
+  <div class="intro-bg"></div>
+  <div class="intro-title" role="img" aria-label="game design portfolio">
+    <img class="intro-svg intro-svg-game" src="imagenes/game Design.svg" alt="" draggable="false">
+    <img class="intro-svg intro-svg-portfolio" src="imagenes/PORTFOLIO.svg" alt="" draggable="false">
+  </div>
+  <!-- Filtro retro para los textos: colores separados en los bordes (como
+       una tele antigua) y líneas de escaneo solo sobre las letras -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <filter id="retroFx" x="-6%" y="-12%" width="112%" height="124%" color-interpolation-filters="sRGB">
+      <feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="rojo"/>
+      <feOffset in="rojo" dx="0" dy="0" result="rojoMov"/>
+      <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0" result="cian"/>
+      <feOffset in="cian" dx="0" dy="0" result="cianMov"/>
+      <feBlend in="rojoMov" in2="cianMov" mode="screen" result="separado"/>
+      <feImage x="0" y="0" width="12" height="7" preserveAspectRatio="none" result="linea"
+        href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='28'%3E%3Crect y='16' width='48' height='12' fill='%23000' fill-opacity='.06'/%3E%3C/svg%3E"/>
+      <feTile in="linea" result="lineas"/>
+      <feComposite in="lineas" in2="separado" operator="in" result="lineasLetras"/>
+      <feMerge>
+        <feMergeNode in="separado"/>
+        <feMergeNode in="lineasLetras"/>
+      </feMerge>
+    </filter>
+  </svg>
+
+  <!-- barra fina mientras cargan los modelos 3D (desaparece al terminar) -->
+  <div class="intro-load"><div class="intro-load-bar"></div></div>
+</section>
+
 <div id="app">
   <div id="view-carousel">
     <header id="header">
@@ -71,14 +99,16 @@
   <div id="view-psp">
     <canvas id="psp-canvas"></canvas>
     <div id="psp-screen">
+      <!-- Pantalla de carga de la PSP: solo sale al insertar un cartucho -->
       <div id="screen-idle">
-        <div class="screen-psp-logo">PSP</div>
-        <div class="screen-psp-sub">PORTFOLIO</div>
+        <div class="screen-psp-logo">XINHAO</div>
+        <div class="screen-psp-sub">loading portfolio</div>
+        <div class="screen-load-wrap"><div class="screen-load-bar"></div></div>
       </div>
       <div id="screen-game">
         <div class="sg-topbar">
-          <span class="sg-time" id="sg-time">00:00</span>
-          <span class="sg-console">PORTFOLIO XINHAO XIA XIA</span>
+          <span class="sg-time" id="sg-time">07:03</span>
+          <span class="sg-console">PROYECTO</span>
           <span class="sg-battery" id="sg-battery">■■■■□ 80%</span>
         </div>
         
@@ -100,7 +130,7 @@
                 <div class="sg-genre-info" id="sg-genre-info"></div>
               </div>
 
-              <p class="sg-desc" id="sg-desc"></p>
+              <div class="sg-desc" id="sg-desc"></div>
 
               <div class="sg-meta-row">
                 <div class="sg-tags" id="sg-tags"></div>

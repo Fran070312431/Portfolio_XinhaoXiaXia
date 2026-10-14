@@ -370,6 +370,26 @@ body {
 .screen-psp-logo { font-family: var(--retro); font-size: 32px; color: #fff; letter-spacing: -1px; }
 .screen-psp-sub  { font-family: var(--retro); font-size: 8px; letter-spacing: 5px; color: rgba(255,255,255,.3); }
 
+/* barra de carga de la PSP (se llena al insertar el cartucho) */
+.screen-load-wrap {
+  width: 160px;
+  height: 3px;
+  margin-top: 8px;
+  background: rgba(255,255,255,.15);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.screen-load-bar {
+  width: 0;
+  height: 100%;
+  background: #fff;
+  border-radius: 2px;
+}
+#screen-idle.loading .screen-load-bar {
+  animation: pspLoadBar var(--psp-load-ms, 1200ms) linear .3s forwards;
+}
+@keyframes pspLoadBar { from { width: 0; } to { width: 100%; } }
+
 #screen-game {
   width: 100%;
   height: 100%;
@@ -462,18 +482,8 @@ body {
 #btn-back:hover   { transform: translateX(-50%) translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,.4); }
 #btn-back:active  { transform: translateX(-50%) translateY(2px);  box-shadow: 0 2px 0 rgba(0,0,0,.4); }
 
-/* ═══ PANTALLA DE CARGA ═══ */
-#loading {
-  position: fixed; inset: 0;
-  background: #f4f0e8;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  z-index: 999; transition: opacity .8s;
-}
-#loading.done { opacity: 0; pointer-events: none; }
-.load-logo { font-family: var(--retro); font-size: 28px; color: var(--dark); margin-bottom: 10px; }
-.load-sub  { font-family: var(--retro); font-size: 7px; letter-spacing: 3px; color: var(--mid); margin-bottom: 28px; }
-.load-bar-wrap { width: 160px; height: 3px; background: var(--dot); border-radius: 2px; overflow: hidden; }
-.load-bar { height: 100%; background: var(--dark); border-radius: 2px; width: 0%; transition: width .3s; }
+/* (la pantalla de carga a pantalla completa ya no existe: la carga de
+   la PSP sale dentro de su pantalla, ver #screen-idle) */
 
 /* ═══ FONDO DE LA PSP Y CONTENIDO ═══ */
 .sg-bg {
@@ -1007,6 +1017,8 @@ body {
   .psp-act-btn { font-size: clamp(8px, 1.6cqw, 11px); padding: .7em .8em; }
   .sg-scroll-arrow { font-size: clamp(11px, 2cqw, 14px); bottom: 2px; }
   .screen-psp-logo { font-size: clamp(20px, 4.5cqw, 32px); }
+  .screen-psp-sub  { font-size: clamp(7px, 1.2cqw, 8px); letter-spacing: .6em; }
+  .screen-load-wrap { width: clamp(90px, 22cqw, 160px); margin-top: clamp(5px, 1.1cqw, 8px); }
 }
 
 /* ═══════════════════════════════════════════════
@@ -1126,6 +1138,88 @@ body {
 .sg-content.showing-info + .sg-scroll-arrow { color: var(--dark); text-shadow: none; }
 
 /* ═══════════════════════════════════════════════
+   DESCRIPCIÓN EN VARIOS PÁRRAFOS + "CARACTERÍSTICAS" + "MI PAPEL"
+   Todo en "em": crece y encoge con el tamaño de .sg-desc, que ya se
+   adapta en escritorio, móvil, pantalla completa y pantallas grandes.
+═══════════════════════════════════════════════ */
+.sg-desc p { margin: 0 0 .7em; }
+.sg-desc p:last-child { margin-bottom: 0; }
+
+.sg-sub {
+  font-family: var(--retro);
+  font-size: .78em;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent, var(--dark));
+  margin: 1.2em 0 .5em;
+}
+.sg-sub-role { color: var(--dark); letter-spacing: .06em; }
+
+.sg-list { list-style: none; margin: 0 0 .4em; padding: 0; }
+.sg-list li {
+  position: relative;
+  padding-left: 1.1em;
+  margin-bottom: .35em;
+}
+.sg-list li::before {
+  content: '▸';
+  position: absolute;
+  left: 0;
+  color: var(--accent, var(--dark));
+}
+.sg-list strong { color: var(--dark); font-weight: 700; }
+
+/* ═══════════════════════════════════════════════
+   ETIQUETA "GAME JAM" en la esquina del nombre del juego (carrusel)
+   Una pegatina con la esquina doblada que se balancea. Va en "em", así
+   escala con el nombre en móvil y en pantallas grandes.
+═══════════════════════════════════════════════ */
+.gn-wrap {
+  position: relative;
+  display: inline-block;
+}
+.jam-badge {
+  position: absolute;
+  top: -2.35em;          /* justo encima del nombre, sin tapar las letras */
+  right: -1.4em;
+  font-family: var(--retro);
+  font-size: .38em;
+  font-weight: 700;
+  letter-spacing: .12em;
+  line-height: 1;
+  white-space: nowrap;
+  color: #fff;
+  background: #e8463a;
+  padding: .55em .9em .55em .8em;
+  border-radius: 3px 0 3px 3px;
+  box-shadow: 0 .25em 0 rgba(0,0,0,.25);
+  transform-origin: 20% 100%;
+  animation: jamWiggle 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+/* esquina doblada (arriba a la derecha) */
+.jam-badge::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: .9em;
+  height: .9em;
+  background: linear-gradient(225deg, #cfe3f3 50%, #9e2a21 50%);
+  box-shadow: -1px 1px 2px rgba(0,0,0,.25);
+}
+@keyframes jamWiggle {
+  0%, 100% { transform: rotate(8deg)  translateY(0); }
+  25%      { transform: rotate(3deg)  translateY(-.25em); }
+  50%      { transform: rotate(10deg) translateY(0); }
+  75%      { transform: rotate(5deg)  translateY(-.15em); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .jam-badge { animation: none; transform: rotate(8deg); }
+}
+
+/* ═══════════════════════════════════════════════
    PANTALLAS MÁS ALTAS QUE 16:9 (16:10, 4:3...)
    El fondo cubre todo el alto (en 16:9 se ve igual que antes).
 ═══════════════════════════════════════════════ */
@@ -1194,6 +1288,7 @@ body {
   .sg-time, .sg-console, .sg-battery { font-size: calc(10 * var(--s)); letter-spacing: calc(1 * var(--s)); }
   .screen-psp-logo { font-size: calc(32 * var(--s)); }
   .screen-psp-sub  { font-size: calc(8 * var(--s)); letter-spacing: calc(5 * var(--s)); }
+  .screen-load-wrap { width: calc(160 * var(--s)); height: calc(3 * var(--s)); margin-top: calc(8 * var(--s)); }
 
   .sg-hero-spacer { padding: 0 calc(12 * var(--s)) calc(8 * var(--s)); }
   .sg-info-page   { padding: calc(16 * var(--s)) calc(14 * var(--s)) calc(32 * var(--s)); }
@@ -1302,6 +1397,7 @@ body {
 .psp-fullscreen .psp-icon      { font-size: 12px; }
 .psp-fullscreen .screen-psp-logo { font-size: 40px; }
 .psp-fullscreen .screen-psp-sub  { font-size: 10px; }
+.psp-fullscreen .screen-load-wrap { width: 180px; height: 4px; margin-top: 10px; }
 
 /* Móvil en horizontal a pantalla completa: la portada no ocupa toda la
    altura, para que se vea que hay info debajo */
@@ -1309,4 +1405,112 @@ body {
   .psp-fullscreen .sg-hero-spacer { width: auto; height: 78dvh; aspect-ratio: auto; background-size: contain; }
   .psp-fullscreen .sg-info-page   { min-height: 0; padding: 16px 24px 28px; }
   .psp-fullscreen .sg-desc { font-size: 15px; margin-bottom: 12px; }
+}
+
+
+/* ═══════════════════════════════════════════════
+   PANTALLA DE INICIO (#intro)
+   Fondo: imagenes/Fondo_menu.jpg · Título: imagenes/titulo_menu.svg
+   Al hacer scroll o deslizar hacia arriba, sube y deja ver el carrusel.
+═══════════════════════════════════════════════ */
+#intro {
+  position: fixed;
+  inset: 0;
+  z-index: 900;                 /* encima del carrusel, debajo de la carga */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  touch-action: none;           /* el deslizamiento lo gestiona main.js */
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: pointer;
+  transition: transform .9s cubic-bezier(.7, 0, .25, 1);
+}
+#intro.gone {
+  transform: translateY(-100%);
+  pointer-events: none;
+}
+#intro[hidden] { display: none; }   /* una vez subido, fuera del todo */
+
+.intro-bg {
+  position: absolute;
+  inset: -3%;                   /* un poco más grande para que el movimiento no deje bordes */
+  background: url('imagenes/Fondo_menu.jpg') center / cover no-repeat, #a9bdca;
+  animation: introBg 16s ease-in-out infinite alternate;
+}
+
+.intro-title {
+  position: relative;
+  width: min(66vw, 118dvh);
+  aspect-ratio: 892 / 490;      /* espacio para los dos textos separados */
+  pointer-events: none;
+}
+/* Tus SVG, separados: "game design" arriba a la izquierda y "portfolio"
+   abajo a la derecha, cada uno con su propio giro (--rot) y su propio
+   movimiento. Para cambiar el giro, toca --rot. */
+.intro-svg {
+  position: absolute;
+  display: block;
+  height: auto;
+  overflow: visible;
+  will-change: transform;
+}
+.intro-svg-game {
+  left: 0;      top: 8%;       width: 93.3%;  aspect-ratio: 832 / 240;
+  --rot: -4deg;
+  animation: introFloat 3.6s ease-in-out infinite, retroFlicker 7s steps(1) infinite;
+}
+.intro-svg-portfolio {
+  left: 20%;  top: 35%;     width: 73.2%;  aspect-ratio: 653 / 240;
+  --rot: 3deg;
+  animation: introFloat 4.2s ease-in-out -1.6s infinite, retroFlicker 9s steps(1) -3s infinite;
+}
+/* Si el SVG no se pudo meter en la página y queda como imagen, el
+   filtro retro se aproxima con sombras de color */
+img.intro-svg {
+  filter: drop-shadow(-.15vw 0 0 rgba(255, 40, 90, .35)) drop-shadow(.15vw 0 0 rgba(40, 200, 255, .35));
+}
+
+/* barra fina de carga abajo, solo mientras cargan los modelos */
+.intro-load {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 3px;
+  background: rgba(37,37,37,.12);
+  transition: opacity .4s;
+}
+.intro-load-bar {
+  width: 0;
+  height: 100%;
+  background: var(--dark);
+  transition: width .3s;
+}
+#intro.waiting .intro-load { height: 5px; }   /* si se intenta pasar antes de cargar */
+#intro.ready .intro-load   { opacity: 0; }
+
+/* cada texto flota y se balancea un pelín alrededor de su giro */
+@keyframes introFloat {
+  0%, 100% { transform: translateY(0)      rotate(var(--rot)); }
+  50%      { transform: translateY(-1vh) rotate(calc(var(--rot) + 1deg)); }
+}
+/* parpadeo retro muy breve de vez en cuando */
+@keyframes retroFlicker {
+  0%, 91%, 93.5%, 100% { opacity: 1; }
+  92%                  { opacity: .93; }
+  93%                  { opacity: .97; }
+}
+/* el fondo se desplaza muy despacio */
+@keyframes introBg {
+  from { transform: scale(1)    translate(0, 0); }
+  to   { transform: scale(1.04) translate(-1%, -1%); }
+}
+
+@media (max-width: 700px) {
+  .intro-title { width: 93vw; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-bg, .intro-svg { animation: none; }
+  .intro-svg { transform: rotate(var(--rot)); }
 }
