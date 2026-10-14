@@ -70,8 +70,9 @@
     </filter>
     <!-- Filtro retro para la palanca y el logo: los mismos valores que el de
          "game design" y "portfolio" (#retroFx). Si cambias uno, cambia el otro
-         igual para que sigan a juego. -->
-    <filter id="retroFxObj" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+         igual para que sigan a juego. El área (x/y/width/height) es grande para
+         que el palo no se corte al girar fuera de su caja. -->
+    <filter id="retroFxObj" x="-75%" y="-75%" width="250%" height="250%" color-interpolation-filters="sRGB">
       <feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="rojo"/>
       <feOffset in="rojo" dx="0" dy="0" result="rojoMov"/>
       <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0" result="cian"/>
