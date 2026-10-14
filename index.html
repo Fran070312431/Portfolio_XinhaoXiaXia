@@ -28,6 +28,12 @@
   <!-- Los dos textos empiezan escondidos arriba: caen al tirar de la palanca
        (primero "portfolio" y luego "game design" encima) -->
   <div class="intro-title" role="img" aria-label="game design portfolio">
+    <!-- Tu logo en el centro: al caer "portfolio" encima, se aplasta y desaparece -->
+    <div class="intro-logo" aria-hidden="true">
+      <img src="imagenes/Logo_intro.png" alt="" draggable="false">
+      <span class="logo-dust d1"></span><span class="logo-dust d2"></span>
+      <span class="logo-dust d3"></span><span class="logo-dust d4"></span>
+    </div>
     <div class="intro-piece intro-piece-game">
       <img class="intro-svg intro-svg-game" src="imagenes/game Design.svg" alt="" draggable="false">
     </div>
@@ -60,6 +66,24 @@
       <feMerge>
         <feMergeNode in="separado"/>
         <feMergeNode in="lineasLetras"/>
+      </feMerge>
+    </filter>
+    <!-- Filtro retro para la palanca y el logo: los mismos valores que el de
+         "game design" y "portfolio" (#retroFx). Si cambias uno, cambia el otro
+         igual para que sigan a juego. -->
+    <filter id="retroFxObj" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+      <feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="rojo"/>
+      <feOffset in="rojo" dx="0" dy="0" result="rojoMov"/>
+      <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0" result="cian"/>
+      <feOffset in="cian" dx="0" dy="0" result="cianMov"/>
+      <feBlend in="rojoMov" in2="cianMov" mode="screen" result="separado"/>
+      <feImage x="0" y="0" width="12" height="7" preserveAspectRatio="none" result="linea"
+        href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='28'%3E%3Crect y='16' width='48' height='12' fill='%23000' fill-opacity='.06'/%3E%3C/svg%3E"/>
+      <feTile in="linea" result="lineas"/>
+      <feComposite in="lineas" in2="separado" operator="in" result="lineasObj"/>
+      <feMerge>
+        <feMergeNode in="separado"/>
+        <feMergeNode in="lineasObj"/>
       </feMerge>
     </filter>
   </svg>

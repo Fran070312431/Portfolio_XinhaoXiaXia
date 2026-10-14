@@ -1197,6 +1197,7 @@ const LEVER_TO_DROP_MS = 380;  // desde el clic hasta que empieza a caer "portfo
 const DROP_MS          = 900;  // lo que dura cada caída
 const DROP_GAP_MS      = 650;  // cuánto después cae "game design"
 const DROP_IMPACT      = 0.55; // momento del golpe dentro de la caída (55%, como en el CSS)
+const LOGO_SQUASH_AT   = 0.47; // cuándo empieza a aplastarse el logo (un poco antes del golpe)
 
 function closeIntro() {
   if (!introOpen || introStage !== 'landed') return;   // sin textos no se pasa
@@ -1247,15 +1248,20 @@ function pullLever() {
   const pieceP = introEl.querySelector('.intro-piece-portfolio');
   const pieceG = introEl.querySelector('.intro-piece-game');
   const landed = () => { introStage = 'landed'; };
+  const logo = introEl.querySelector('.intro-logo');
 
   // sin animaciones (preferencia del sistema): aparecen ya colocados
   if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) {
     [pieceP, pieceG].forEach(p => p && p.classList.add('landed'));
+    if (logo) logo.classList.add('gone');
     landed();
     return;
   }
 
   setTimeout(() => dropPiece(pieceP, introShake), LEVER_TO_DROP_MS);
+  // el logo se aplasta justo cuando "portfolio" le llega encima
+  if (logo) setTimeout(() => logo.classList.add('squash'),
+                       LEVER_TO_DROP_MS + DROP_MS * LOGO_SQUASH_AT);
   setTimeout(() => dropPiece(pieceG, () => {
     introShake();
     if (pieceP) {                              // "portfolio" se hunde con el golpe

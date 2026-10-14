@@ -1476,6 +1476,66 @@ body {
 .intro-svg-game      { --rot: -4deg; }
 .intro-svg-portfolio { --rot: 3deg; }
 
+/* ── TU LOGO (imagenes/Logo_intro.png) ──
+   En el centro, apoyado en el "suelo" donde cae "portfolio". Se mueve un
+   pelín y, cuando le cae el texto encima, se aplasta, suelta polvo y
+   desaparece. Tamaño: width (en % del bloque de los textos). */
+.intro-logo {
+  position: absolute;
+  left: 35%;                    /* para centrarlo: left = (100 - width) / 2 */
+  bottom: 24%;                  /* << ALTURA (más número = más arriba) */
+  width: 30%;                   /* << TAMAÑO DEL LOGO */
+  aspect-ratio: 34 / 30;
+  z-index: 0;                   /* detrás de los textos */
+  transform-origin: 50% 50%;    /* gira sobre su centro, sin moverse de sitio */
+  animation: logoIdle 2.6s ease-in-out infinite, retroFlicker 8s steps(1) -2s infinite;
+}
+.intro-logo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;   /* es pixel art: así se ve nítido a cualquier tamaño */
+  transform-origin: 50% 100%;
+  filter: url(#retroFxObj);     /* filtro retro (index.html, #retroFxObj) */
+}
+/* solo rota un poco hacia un lado y hacia el otro (los grados = cuánto) */
+@keyframes logoIdle {
+  0%, 100% { transform: rotate(-4deg); }
+  50%      { transform: rotate(4deg); }
+}
+/* aplastado */
+.intro-logo.squash { animation: none; }
+.intro-logo.squash img { animation: logoSquash .6s ease-out forwards; }
+@keyframes logoSquash {
+  0%   { transform: scale(1, 1); }
+  18%  { transform: scale(1.3, .45); }
+  32%  { transform: scale(1.55, .12); }
+  70%  { transform: scale(1.6, .08); opacity: 1; }
+  100% { transform: scale(1.6, .06); opacity: 0; }
+}
+/* polvillo que sale por los lados al aplastarse */
+.logo-dust {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 7%;
+  aspect-ratio: 1;
+  background: #2a2a2a;
+  opacity: 0;
+  pointer-events: none;
+}
+.logo-dust.d1 { --dx: -900%; --dy: -260%; }
+.logo-dust.d2 { --dx: -650%; --dy: -60%; }
+.logo-dust.d3 { --dx: 650%;  --dy: -90%; }
+.logo-dust.d4 { --dx: 900%;  --dy: -230%; }
+.intro-logo.squash .logo-dust { animation: logoDust .55s ease-out .08s forwards; }
+@keyframes logoDust {
+  0%   { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), var(--dy)) scale(.4); }
+}
+.intro-logo.gone { display: none; }
+
 /* cayendo */
 .intro-piece.drop {
   visibility: visible;
@@ -1543,6 +1603,13 @@ img.intro-svg {
   -webkit-tap-highlight-color: transparent;
 }
 .intro-lever.pulled { cursor: default; }
+/* estética retro, a juego con los textos: el filtro de tele antigua (#retroFxObj).
+   Va en el botón (no en .lever-art) para que las líneas salgan horizontales
+   aunque la palanca esté girada en la pared. */
+.intro-lever {
+  animation: retroFlicker 7.5s steps(1) -4s infinite;
+  filter: url(#retroFxObj);     /* el borde blanco ya va dibujado en el pixel art */
+}
 .intro-lever:focus-visible { outline: 2px dashed rgba(37,37,37,.5); outline-offset: 4px; }
 .lever-art {
   position: absolute;
@@ -1555,6 +1622,7 @@ img.intro-svg {
   inset: 0;
   width: 100%;
   height: 100%;
+  image-rendering: pixelated;   /* pixel art 32×32, como tu logo: así se ve nítido */
 }
 .lever-stick {
   transform-origin: 50% 80%;    /* donde el palo entra en la base */
@@ -1623,7 +1691,7 @@ img.intro-svg {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .intro-bg, .intro-svg, .intro-piece, .lever-stick { animation: none !important; }
+  .intro-bg, .intro-svg, .intro-piece, .lever-stick, .intro-logo, .intro-lever { animation: none !important; }
   .intro-lever.pulled .lever-stick { transform: rotate(58deg); }
 }
 
