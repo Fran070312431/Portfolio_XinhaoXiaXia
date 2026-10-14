@@ -1626,3 +1626,16 @@ img.intro-svg {
   .intro-bg, .intro-svg, .intro-piece, .lever-stick { animation: none !important; }
   .intro-lever.pulled .lever-stick { transform: rotate(58deg); }
 }
+
+/* cada 4 segundos el palo da un tironcito para llamar la atención
+   (solo mientras no se ha tirado de la palanca) */
+.intro-lever:not(.pulled) .lever-stick {
+  animation: leverNudge 4s ease-in-out 1.5s infinite;
+}
+@keyframes leverNudge {
+  0%, 82%, 100% { transform: rotate(0deg); }
+  86%           { transform: rotate(8deg); }
+  90%           { transform: rotate(-2deg); }
+  94%           { transform: rotate(6deg); }
+  97%           { transform: rotate(-1deg); }
+}
