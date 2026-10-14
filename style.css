@@ -1458,10 +1458,11 @@ body {
 }
 .intro-piece-game {
   left: 0;    top: 8%;   width: 93.3%;  aspect-ratio: 832 / 240;
-  z-index: 2;                   /* cae encima de "portfolio" */
+  z-index: 1;                   /* cae encima de "portfolio" */
 }
 .intro-piece-portfolio {
   left: 20%;  top: 35%;  width: 73.2%;  aspect-ratio: 653 / 240;
+  z-index: 2;                   /* cae debajo de "game design" */
 }
 .intro-svg {
   position: absolute;
@@ -1528,10 +1529,11 @@ img.intro-svg {
    Solo se mueve el palo, girando sobre el punto donde entra en la base. */
 .intro-lever {
   position: absolute;
-  top: 0;
-  right: clamp(14px, 10vw, 130px);
+  top: 20%;
+  right: 0;
+  translate: 0 -50%;
   z-index: 3;
-  width: clamp(40px, min(5vw, 8dvh), 100px);   /* << TAMAÑO DE LA PALANCA */
+  width: calc(clamp(56px, min(7.5vw, 12dvh), 140px) * 1.1);   /* << TAMAÑO DE LA PALANCA */
   aspect-ratio: 1;
   padding: 0;
   border: none;
@@ -1545,7 +1547,7 @@ img.intro-svg {
 .lever-art {
   position: absolute;
   inset: 0;
-  transform: scaleY(-1);        /* boca abajo: la base pegada arriba */
+  transform: rotate(-90deg) scaleX(-1);        /* boca abajo: la base pegada arriba */
   pointer-events: none;
 }
 .lever-art img {
@@ -1553,10 +1555,9 @@ img.intro-svg {
   inset: 0;
   width: 100%;
   height: 100%;
-  image-rendering: pixelated;   /* que el pixel art no se vea borroso */
 }
 .lever-stick {
-  transform-origin: 50% 72%;    /* donde el palo entra en la base */
+  transform-origin: 50% 80%;    /* donde el palo entra en la base */
   transform: rotate(0deg);
 }
 
