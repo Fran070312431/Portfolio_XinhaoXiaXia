@@ -245,6 +245,7 @@ let insertAnimRenderer = null;
 let activeInsertAnim   = null;
 let insertAnimPlaying  = false;
 let pspLastW = 0, pspLastH = 0;
+let pspNeedsRender = true;  // la PSP está quieta: solo se vuelve a dibujar si cambia algo
 
 /* ═══ CACHÉ DOM ═══ */
 let DOM = {};
@@ -397,9 +398,12 @@ GAMES.forEach((game, i) => {
 });
 
 /* ═══ SONIDO ═══ */
+let audioCtx = null;   // se crea una vez y se reutiliza (antes uno nuevo por cada cartucho)
 function playPSPSound() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = audioCtx;
+    if (ctx.state === 'suspended') ctx.resume();
     const sr = ctx.sampleRate, dur = 1.8;
     const buf = ctx.createBuffer(1, sr * dur, sr);
     const d   = buf.getChannelData(0);
@@ -820,6 +824,7 @@ function startInsert() {
   if (DOM.btnExtras)        DOM.btnExtras.classList.add('hiding');
 
   insertingScene = umdScenes[currentIdx];
+  pspNeedsRender = true;
 
   playInsertAnimation(insertingScene, () => {
     setTimeout(() => {
@@ -847,6 +852,7 @@ function goBack() {
     if (insertingScene) {
       insertingScene.item.style.opacity   = '';
       insertingScene.item.style.transform = '';
+      insertingScene.lastTf = insertingScene.lastOp = null;   // que se vuelva a poner su tamaño
       insertingScene = null;
     }
     if (activeInsertAnim) {
@@ -942,6 +948,7 @@ function layoutPSP() {
   const W = DOM.viewPsp.clientWidth;
   const H = DOM.viewPsp.clientHeight;
   if (!W || !H) return;
+  pspNeedsRender = true;
 
   if (W !== pspLastW || H !== pspLastH) {
     pspLastW = W; pspLastH = H;
@@ -1172,16 +1179,27 @@ function updateClock() {
 }
 
 /* ═══ PANTALLA DE INICIO ═══
-   Se cierra (sube) con un poco de scroll, deslizando hacia arriba en el
-   móvil, con las teclas ↓ / espacio / Enter, o tocándola. Mientras está
-   abierta, el carrusel de debajo no reacciona a teclas ni gestos. */
-const introEl = document.getElementById('intro');
-let introOpen = !!introEl;
+   1. Al principio solo se ve el fondo y la palanca (arriba a la derecha).
+   2. Al tirar de la palanca caen los textos: primero "portfolio" y luego
+      "game design" encima. Volver a tirar no hace nada.
+   3. Solo cuando ya han caído, con scroll, deslizando hacia arriba en el
+      móvil o con ↓ / espacio / Enter, la pantalla sube y se ven los discos.
+      Antes de eso no se puede pasar. */
+const introEl  = document.getElementById('intro');
+const leverEl  = document.getElementById('intro-lever');
+let introOpen  = !!introEl;
+let introStage = 'idle';       // 'idle' → 'dropping' → 'landed'
 let appReady = false;          // true cuando los modelos 3D ya han cargado
 let introWantsClose = false;   // se pidió pasar antes de terminar de cargar
 
+/* tiempos de la caída (ms) — cámbialos aquí si quieres que vaya más rápido o lento */
+const LEVER_TO_DROP_MS = 380;  // desde el clic hasta que empieza a caer "portfolio"
+const DROP_MS          = 900;  // lo que dura cada caída
+const DROP_GAP_MS      = 650;  // cuánto después cae "game design"
+const DROP_IMPACT      = 0.55; // momento del golpe dentro de la caída (55%, como en el CSS)
+
 function closeIntro() {
-  if (!introOpen) return;
+  if (!introOpen || introStage !== 'landed') return;   // sin textos no se pasa
   if (!appReady) {             // aún cargando: pasa en cuanto termine
     introWantsClose = true;
     if (introEl) introEl.classList.add('waiting');
@@ -1197,6 +1215,56 @@ function introReady() {
   if (introEl) introEl.classList.add('ready');   // oculta la barra fina de carga
   if (introWantsClose) closeIntro();
   if (!introEl) introOpen = false;
+}
+
+function introShake() {
+  const bg = introEl && introEl.querySelector('.intro-bg');
+  if (!bg) return;
+  bg.classList.remove('shake');
+  void bg.offsetWidth;
+  bg.classList.add('shake');
+}
+
+function dropPiece(piece, onImpact, onLanded) {
+  if (!piece) { onImpact && onImpact(); onLanded && onLanded(); return; }
+  piece.style.setProperty('--drop-ms', DROP_MS + 'ms');
+  piece.classList.add('drop');
+  setTimeout(() => { onImpact && onImpact(); }, DROP_MS * DROP_IMPACT);
+  setTimeout(() => {
+    piece.classList.remove('drop');
+    piece.classList.add('landed');
+    onLanded && onLanded();
+  }, DROP_MS);
+}
+
+function pullLever() {
+  if (introStage !== 'idle') return;          // segunda vez: no pasa nada
+  introStage = 'dropping';
+  if (leverEl) {
+    leverEl.classList.add('pulled');
+    leverEl.setAttribute('aria-disabled', 'true');
+  }
+  const pieceP = introEl.querySelector('.intro-piece-portfolio');
+  const pieceG = introEl.querySelector('.intro-piece-game');
+  const landed = () => { introStage = 'landed'; };
+
+  // sin animaciones (preferencia del sistema): aparecen ya colocados
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    [pieceP, pieceG].forEach(p => p && p.classList.add('landed'));
+    landed();
+    return;
+  }
+
+  setTimeout(() => dropPiece(pieceP, introShake), LEVER_TO_DROP_MS);
+  setTimeout(() => dropPiece(pieceG, () => {
+    introShake();
+    if (pieceP) {                              // "portfolio" se hunde con el golpe
+      pieceP.classList.remove('hit');
+      void pieceP.offsetWidth;
+      pieceP.classList.add('hit');
+      setTimeout(() => pieceP.classList.remove('hit'), 450);
+    }
+  }, landed), LEVER_TO_DROP_MS + DROP_GAP_MS);
 }
 
 /* Tus SVG (game_Design.svg y PORTFOLIO.svg) se meten dentro de la página:
@@ -1240,6 +1308,7 @@ if (introEl) {
     if (introY !== null && introY - e.touches[0].clientY > 35) { introY = null; closeIntro(); }
   }, { passive: true });
   introEl.addEventListener('click', closeIntro);
+  if (leverEl) leverEl.addEventListener('click', e => { e.stopPropagation(); pullLever(); });
 }
 
 /* ═══ EVENTOS ═══ */
@@ -1250,7 +1319,12 @@ document.getElementById('btn-back').onclick   = goBack;
 
 window.addEventListener('keydown', e => {
   if (introOpen) {
-    if (['ArrowDown', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); closeIntro(); }
+    if (['ArrowDown', 'PageDown', ' ', 'Enter'].includes(e.key)) {
+      e.preventDefault();
+      // antes de que caigan los textos, espacio / Enter tiran de la palanca
+      if (introStage === 'idle') { if (e.key === ' ' || e.key === 'Enter') pullLever(); }
+      else closeIntro();
+    }
     return;
   }
   if(e.key==='ArrowLeft')  navigate(-1);
@@ -1300,15 +1374,19 @@ function animLoop() {
   if (introOpen && !introFirstFrame) return;
   introFirstFrame = false;
 
+  // Con la PSP en pantalla el carrusel está oculto: no hace falta mover ni
+  // dibujar los discos (eran hasta 7 dibujos 3D por fotograma sin verse)
+  const carouselHidden = appState === 'psp';
+
   if (appState === 'carousel' || appState === 'inserting') {
     const target = centeredOffset(currentIdx);
     trackOffset += (target - trackOffset) * 0.1;
     applyTrackTransform(trackOffset);
   }
 
-  updateScales();
+  if (!carouselHidden) updateScales();
 
-  umdScenes.forEach((s, i) => {
+  if (!carouselHidden) umdScenes.forEach((s, i) => {
     if (!s.mesh) return;
     const isCenter = i === currentIdx;
 
@@ -1317,8 +1395,12 @@ function animLoop() {
       s.scale      = s.scale      + ((s.targetScale      ?? 1) - s.scale)      * 0.1;
       s.opacity    = s.opacity    + ((s.targetOpacity    ?? 1) - s.opacity)    * 0.1;
       s.sideOffset = (s.sideOffset ?? 0) + ((s.targetSideOffset ?? 0) - (s.sideOffset ?? 0)) * 0.1;
-      s.item.style.transform = `scale(${s.scale}) translateX(${s.sideOffset}px)`;
-      s.item.style.opacity   = s.opacity.toString();
+      // Solo se toca el estilo si ha cambiado (redondeado): cuando el disco
+      // ya está quieto, el navegador no tiene que recalcular nada
+      const tf = `scale(${s.scale.toFixed(4)}) translateX(${s.sideOffset.toFixed(2)}px)`;
+      const op = s.opacity.toFixed(3);
+      if (tf !== s.lastTf) { s.item.style.transform = tf; s.lastTf = tf; }
+      if (op !== s.lastOp) { s.item.style.opacity = op; s.lastOp = op; }
     }
 
     const isHidden = s.opacity < 0.01 && (s.targetOpacity ?? 0) < 0.01;
@@ -1359,7 +1441,11 @@ function animLoop() {
   // El tamaño lo gestiona layoutPSP() al redimensionar; antes se
   // comparaba con devicePixelRatio sin limitar y en móviles con DPR 3
   // se recreaba el buffer en CADA frame.
-  if (pspRenderer && pspModel && appState !== 'carousel' && !pspFullscreen) {
+  // La PSP no se mueve (lo que entra deslizando es el canvas, con CSS), así
+  // que basta con dibujarla una vez y al cambiar el tamaño de la ventana.
+  // Antes se dibujaba 60 veces por segundo, con sombras, sin cambiar nada.
+  if (pspRenderer && pspModel && appState !== 'carousel' && !pspFullscreen && pspNeedsRender) {
     pspRenderer.render(pspScene, pspCamera);
+    pspNeedsRender = false;
   }
 }

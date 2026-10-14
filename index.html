@@ -19,15 +19,31 @@
   <link rel="apple-touch-icon" href="favicon/Logo.png">
 </head>
 <body>
-<!-- Pantalla de inicio: se va hacia arriba al hacer scroll / deslizar.
-     Usa tus SVG de imagenes/ (main.js los mete dentro de la página para
+<!-- Pantalla de inicio: al principio solo el fondo y la palanca. Al tirar
+     de la palanca caen los textos y, desde ese momento, con scroll /
+     deslizar la pantalla se va hacia arriba. Usa tus SVG de imagenes/ (main.js los mete dentro de la página para
      que se vean con la letra Pixelify Sans). -->
 <section id="intro" aria-label="Inicio del portfolio">
   <div class="intro-bg"></div>
+  <!-- Los dos textos empiezan escondidos arriba: caen al tirar de la palanca
+       (primero "portfolio" y luego "game design" encima) -->
   <div class="intro-title" role="img" aria-label="game design portfolio">
-    <img class="intro-svg intro-svg-game" src="imagenes/game Design.svg" alt="" draggable="false">
-    <img class="intro-svg intro-svg-portfolio" src="imagenes/PORTFOLIO.svg" alt="" draggable="false">
+    <div class="intro-piece intro-piece-game">
+      <img class="intro-svg intro-svg-game" src="imagenes/game Design.svg" alt="" draggable="false">
+    </div>
+    <div class="intro-piece intro-piece-portfolio">
+      <img class="intro-svg intro-svg-portfolio" src="imagenes/PORTFOLIO.svg" alt="" draggable="false">
+    </div>
   </div>
+
+  <!-- Palanca colgando arriba a la derecha. Son dos imágenes: la base (fija)
+       y el palo (lo único que se mueve). -->
+  <button type="button" class="intro-lever" id="intro-lever" aria-label="Tirar de la palanca">
+    <span class="lever-art">
+      <img class="lever-stick" src="imagenes/Palanca_palo.png" alt="" draggable="false">
+      <img class="lever-base" src="imagenes/Palanca_base.png" alt="" draggable="false">
+    </span>
+  </button>
   <!-- Filtro retro para los textos: colores separados en los bordes (como
        una tele antigua) y líneas de escaneo solo sobre las letras -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">

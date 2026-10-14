@@ -1410,8 +1410,9 @@ body {
 
 /* ═══════════════════════════════════════════════
    PANTALLA DE INICIO (#intro)
-   Fondo: imagenes/Fondo_menu.jpg · Título: imagenes/titulo_menu.svg
-   Al hacer scroll o deslizar hacia arriba, sube y deja ver el carrusel.
+   Fondo: imagenes/Fondo_menu.jpg · Palanca: imagenes/Palanca_palo.png y
+   Palanca_base.png. Al tirar de la palanca caen los textos; después, con
+   scroll o deslizando hacia arriba, sube y deja ver el carrusel.
 ═══════════════════════════════════════════════ */
 #intro {
   position: fixed;
@@ -1424,7 +1425,6 @@ body {
   touch-action: none;           /* el deslizamiento lo gestiona main.js */
   user-select: none;
   -webkit-user-select: none;
-  cursor: pointer;
   transition: transform .9s cubic-bezier(.7, 0, .25, 1);
 }
 #intro.gone {
@@ -1446,38 +1446,149 @@ body {
   aspect-ratio: 892 / 490;      /* espacio para los dos textos separados */
   pointer-events: none;
 }
-/* Tus SVG, separados: "game design" arriba a la izquierda y "portfolio"
-   abajo a la derecha, cada uno con su propio giro (--rot) y su propio
-   movimiento. Para cambiar el giro, toca --rot. */
+
+/* ── LOS DOS TEXTOS ──
+   .intro-piece es la caja que cae (posición y tamaño de cada texto).
+   Dentro va tu SVG, que lleva su giro (--rot) y, ya en el suelo, flota.
+   Para moverlos de sitio toca left / top / width de .intro-piece-... */
+.intro-piece {
+  position: absolute;
+  visibility: hidden;           /* escondidos hasta tirar de la palanca */
+  transform-origin: 50% 100%;   /* el aplastón al caer, desde abajo */
+}
+.intro-piece-game {
+  left: 0;    top: 8%;   width: 93.3%;  aspect-ratio: 832 / 240;
+  z-index: 2;                   /* cae encima de "portfolio" */
+}
+.intro-piece-portfolio {
+  left: 20%;  top: 35%;  width: 73.2%;  aspect-ratio: 653 / 240;
+}
 .intro-svg {
   position: absolute;
+  inset: 0;
   display: block;
-  height: auto;
+  width: 100%;
+  height: 100%;
   overflow: visible;
-  will-change: transform;
+  transform: rotate(var(--rot));
 }
-.intro-svg-game {
-  left: 0;      top: 8%;       width: 93.3%;  aspect-ratio: 832 / 240;
-  --rot: -4deg;
+.intro-svg-game      { --rot: -4deg; }
+.intro-svg-portfolio { --rot: 3deg; }
+
+/* cayendo */
+.intro-piece.drop {
+  visibility: visible;
+  animation: introDrop var(--drop-ms, 900ms) both;
+}
+/* "portfolio" se hunde un poco cuando "game design" le cae encima */
+.intro-piece.hit { animation: introHit .45s ease-out; }
+/* ya en el suelo: flotan y parpadean como antes */
+.intro-piece.landed { visibility: visible; }
+.intro-piece.landed .intro-svg-game {
   animation: introFloat 3.6s ease-in-out infinite, retroFlicker 7s steps(1) infinite;
 }
-.intro-svg-portfolio {
-  left: 20%;  top: 35%;     width: 73.2%;  aspect-ratio: 653 / 240;
-  --rot: 3deg;
+.intro-piece.landed .intro-svg-portfolio {
   animation: introFloat 4.2s ease-in-out -1.6s infinite, retroFlicker 9s steps(1) -3s infinite;
 }
+
 /* Si el SVG no se pudo meter en la página y queda como imagen, el
    filtro retro se aproxima con sombras de color */
 img.intro-svg {
   filter: drop-shadow(-.15vw 0 0 rgba(255, 40, 90, .35)) drop-shadow(.15vw 0 0 rgba(40, 200, 255, .35));
 }
 
-/* barra fina de carga abajo, solo mientras cargan los modelos */
+/* Caída con peso: acelera como si cayera de verdad, se aplasta al
+   chocar, rebota un poco y se asienta */
+@keyframes introDrop {
+  0%   { transform: translateY(-130vh) scale(1, 1.06);  animation-timing-function: cubic-bezier(.5, 0, 1, .6); }
+  55%  { transform: translateY(0)      scale(1.12, .8); animation-timing-function: cubic-bezier(.2, .7, .4, 1); }
+  70%  { transform: translateY(-9%)    scale(.97, 1.04); animation-timing-function: cubic-bezier(.6, 0, 1, .6); }
+  82%  { transform: translateY(0)      scale(1.04, .95); animation-timing-function: ease-out; }
+  91%  { transform: translateY(-2%)    scale(1, 1); animation-timing-function: ease-in; }
+  100% { transform: translateY(0)      scale(1, 1); }
+}
+@keyframes introHit {
+  0%   { transform: translateY(0)   scale(1, 1); }
+  25%  { transform: translateY(4%)  scale(1.05, .9); }
+  60%  { transform: translateY(-1%) scale(.99, 1.02); }
+  100% { transform: translateY(0)   scale(1, 1); }
+}
+/* temblor del fondo en cada golpe (usa "translate", así no pisa el zoom lento) */
+.intro-bg.shake { animation: introBg 16s ease-in-out infinite alternate, introShake .38s linear; }
+@keyframes introShake {
+  0%, 100% { translate: 0 0; }
+  20% { translate: 0 .9vh; }
+  40% { translate: 0 -.6vh; }
+  60% { translate: 0 .35vh; }
+  80% { translate: 0 -.15vh; }
+}
+
+/* ── PALANCA ──
+   Arriba a la derecha y colgando hacia abajo (la imagen va dada la vuelta).
+   Solo se mueve el palo, girando sobre el punto donde entra en la base. */
+.intro-lever {
+  position: absolute;
+  top: 0;
+  right: clamp(14px, 10vw, 130px);
+  z-index: 3;
+  width: clamp(40px, min(5vw, 8dvh), 100px);   /* << TAMAÑO DE LA PALANCA */
+  aspect-ratio: 1;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.intro-lever.pulled { cursor: default; }
+.intro-lever:focus-visible { outline: 2px dashed rgba(37,37,37,.5); outline-offset: 4px; }
+.lever-art {
+  position: absolute;
+  inset: 0;
+  transform: scaleY(-1);        /* boca abajo: la base pegada arriba */
+  pointer-events: none;
+}
+.lever-art img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;   /* que el pixel art no se vea borroso */
+}
+.lever-stick {
+  transform-origin: 50% 72%;    /* donde el palo entra en la base */
+  transform: rotate(0deg);
+}
+
+/* ratón encima: el palo amaga con moverse */
+@media (hover: hover) {
+  .intro-lever:not(.pulled):hover .lever-stick { animation: leverTease .8s ease-in-out; }
+}
+@keyframes leverTease {
+  0%, 100% { transform: rotate(0deg); }
+  30%      { transform: rotate(9deg); }
+  55%      { transform: rotate(3deg); }
+  75%      { transform: rotate(6deg); }
+}
+
+/* clic: se tira de la palanca al otro lado y se queda ahí */
+.intro-lever.pulled .lever-stick { animation: leverPull .55s both; }
+@keyframes leverPull {
+  0%   { transform: rotate(0deg);   animation-timing-function: ease-out; }
+  18%  { transform: rotate(-4deg);  animation-timing-function: cubic-bezier(.5, 0, .9, .5); }
+  55%  { transform: rotate(64deg);  animation-timing-function: ease-out; }
+  75%  { transform: rotate(54deg);  animation-timing-function: ease-in-out; }
+  100% { transform: rotate(58deg); }
+}
+
+/* barra fina de carga abajo: solo si los textos ya cayeron y se intenta
+   pasar antes de que terminen de cargar los modelos */
 .intro-load {
   position: absolute;
   left: 0; right: 0; bottom: 0;
-  height: 3px;
+  height: 4px;
   background: rgba(37,37,37,.12);
+  opacity: 0;
   transition: opacity .4s;
 }
 .intro-load-bar {
@@ -1486,12 +1597,12 @@ img.intro-svg {
   background: var(--dark);
   transition: width .3s;
 }
-#intro.waiting .intro-load { height: 5px; }   /* si se intenta pasar antes de cargar */
+#intro.waiting .intro-load { opacity: 1; }
 #intro.ready .intro-load   { opacity: 0; }
 
 /* cada texto flota y se balancea un pelín alrededor de su giro */
 @keyframes introFloat {
-  0%, 100% { transform: translateY(0)      rotate(var(--rot)); }
+  0%, 100% { transform: translateY(0)    rotate(var(--rot)); }
   50%      { transform: translateY(-1vh) rotate(calc(var(--rot) + 1deg)); }
 }
 /* parpadeo retro muy breve de vez en cuando */
@@ -1511,6 +1622,6 @@ img.intro-svg {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .intro-bg, .intro-svg { animation: none; }
-  .intro-svg { transform: rotate(var(--rot)); }
+  .intro-bg, .intro-svg, .intro-piece, .lever-stick { animation: none !important; }
+  .intro-lever.pulled .lever-stick { transform: rotate(58deg); }
 }
