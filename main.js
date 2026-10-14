@@ -1182,9 +1182,10 @@ function updateClock() {
    1. Al principio solo se ve el fondo y la palanca (arriba a la derecha).
    2. Al tirar de la palanca caen los textos: primero "portfolio" y luego
       "game design" encima. Volver a tirar no hace nada.
-   3. Solo cuando ya han caído, con scroll, deslizando hacia arriba en el
-      móvil o con ↓ / espacio / Enter, la pantalla sube y se ven los discos.
-      Antes de eso no se puede pasar. */
+   3. Cuando "game design" termina de caer, la pantalla se abre por la mitad
+      (en horizontal): la mitad de arriba sube con "game design" y la palanca,
+      la de abajo baja con "portfolio", y detrás aparecen los discos.
+      Ya no hace falta deslizar: todo empieza con la palanca. */
 const introEl  = document.getElementById('intro');
 const leverEl  = document.getElementById('intro-lever');
 let introOpen  = !!introEl;
@@ -1198,6 +1199,8 @@ const DROP_MS          = 900;  // lo que dura cada caída
 const DROP_GAP_MS      = 650;  // cuánto después cae "game design"
 const DROP_IMPACT      = 0.55; // momento del golpe dentro de la caída (55%, como en el CSS)
 const LOGO_SQUASH_AT   = 0.47; // cuándo empieza a aplastarse el logo (un poco antes del golpe)
+const SPLIT_DELAY_MS   = 450;  // pausa entre que cae "game design" y se abre la pantalla
+const SPLIT_MS         = 1600; // lo que tarda en abrirse (lo más largo del CSS, 1.4s, con margen)
 
 function closeIntro() {
   if (!introOpen || introStage !== 'landed') return;   // sin textos no se pasa
@@ -1207,8 +1210,8 @@ function closeIntro() {
     return;
   }
   introOpen = false;
-  introEl.classList.add('gone');
-  setTimeout(() => { introEl.hidden = true; }, 1000);
+  introEl.classList.add('split');            // se abre por la mitad (CSS)
+  setTimeout(() => { introEl.hidden = true; }, SPLIT_MS + 100);
 }
 
 function introReady() {
@@ -1219,11 +1222,12 @@ function introReady() {
 }
 
 function introShake() {
-  const bg = introEl && introEl.querySelector('.intro-bg');
-  if (!bg) return;
-  bg.classList.remove('shake');
-  void bg.offsetWidth;
-  bg.classList.add('shake');
+  if (!introEl) return;
+  introEl.querySelectorAll('.intro-bg').forEach(bg => {   // las dos mitades
+    bg.classList.remove('shake');
+    void bg.offsetWidth;
+    bg.classList.add('shake');
+  });
 }
 
 function dropPiece(piece, onImpact, onLanded) {
@@ -1247,7 +1251,10 @@ function pullLever() {
   }
   const pieceP = introEl.querySelector('.intro-piece-portfolio');
   const pieceG = introEl.querySelector('.intro-piece-game');
-  const landed = () => { introStage = 'landed'; };
+  const landed = () => {
+    introStage = 'landed';
+    setTimeout(closeIntro, SPLIT_DELAY_MS);   // y se abre la pantalla sola
+  };
   const logo = introEl.querySelector('.intro-logo');
 
   // sin animaciones (preferencia del sistema): aparecen ya colocados
@@ -1304,16 +1311,39 @@ document.querySelectorAll('#intro img.intro-svg').forEach(img => {
 });
 
 if (introEl) {
-  window.addEventListener('wheel', e => {
-    if (introOpen && e.deltaY > 6) closeIntro();
-  }, { passive: true });
+  // ya no se pasa con scroll / deslizar / clic: solo con la palanca
 
-  let introY = null;
-  introEl.addEventListener('touchstart', e => { introY = e.touches[0].clientY; }, { passive: true });
-  introEl.addEventListener('touchmove', e => {
-    if (introY !== null && introY - e.touches[0].clientY > 35) { introY = null; closeIntro(); }
-  }, { passive: true });
-  introEl.addEventListener('click', closeIntro);
+  // Golpear el logo: al clicarlo / tocarlo se encoge con el golpe y suelta
+  // partículas pixeladas. Deja de funcionar cuando "portfolio" lo aplasta.
+  const logoEl = introEl.querySelector('.intro-logo');
+  const SPARK_COLORS = ['#ffffff', '#b32a2e', '#ffffff', '#212222', '#ffffff', '#b32a2e'];
+  if (logoEl) logoEl.addEventListener('pointerdown', e => {
+    if (logoEl.classList.contains('squash') || logoEl.classList.contains('gone')) return;
+    const img = logoEl.querySelector('img');
+    if (img) { img.classList.remove('hit'); void img.offsetWidth; img.classList.add('hit'); }
+
+    // las partículas salen desde donde se ha clicado
+    const r = logoEl.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width * 100;
+    const py = (e.clientY - r.top) / r.height * 100;
+    const N = 12;                                  // número de partículas
+    for (let i = 0; i < N; i++) {
+      const s = document.createElement('span');
+      s.className = 'logo-spark';
+      const ang  = (i / N) * Math.PI * 2 + Math.random() * 0.6;
+      const dist = r.width * (0.5 + Math.random() * 0.45);   // hasta dónde llegan
+      s.style.left = px + '%';
+      s.style.top  = py + '%';
+      s.style.setProperty('--dx', Math.round(Math.cos(ang) * dist) + 'px');
+      s.style.setProperty('--dy', Math.round(Math.sin(ang) * dist) + 'px');
+      s.style.setProperty('--fall', Math.round(r.width * (0.15 + Math.random() * 0.15)) + 'px'); // gravedad
+      s.style.setProperty('--rot', Math.round((Math.random() * 2 - 1) * 180) + 'deg');
+      s.style.setProperty('--c', SPARK_COLORS[i % SPARK_COLORS.length]);
+      s.style.setProperty('--t', (0.55 + Math.random() * 0.3).toFixed(2) + 's');
+      s.addEventListener('animationend', () => s.remove());
+      logoEl.appendChild(s);
+    }
+  });
   if (leverEl) leverEl.addEventListener('click', e => { e.stopPropagation(); pullLever(); });
 }
 
@@ -1327,9 +1357,8 @@ window.addEventListener('keydown', e => {
   if (introOpen) {
     if (['ArrowDown', 'PageDown', ' ', 'Enter'].includes(e.key)) {
       e.preventDefault();
-      // antes de que caigan los textos, espacio / Enter tiran de la palanca
-      if (introStage === 'idle') { if (e.key === ' ' || e.key === 'Enter') pullLever(); }
-      else closeIntro();
+      // espacio / Enter tiran de la palanca (lo demás pasa solo)
+      if (introStage === 'idle' && (e.key === ' ' || e.key === 'Enter')) pullLever();
     }
     return;
   }

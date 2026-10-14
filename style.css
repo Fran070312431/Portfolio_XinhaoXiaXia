@@ -1411,8 +1411,8 @@ body {
 /* ═══════════════════════════════════════════════
    PANTALLA DE INICIO (#intro)
    Fondo: imagenes/Fondo_menu.jpg · Palanca: imagenes/Palanca_palo.png y
-   Palanca_base.png. Al tirar de la palanca caen los textos; después, con
-   scroll o deslizando hacia arriba, sube y deja ver el carrusel.
+   Palanca_base.png. Al tirar de la palanca caen los textos, aplastan el
+   logo y la pantalla se abre por la mitad dejando ver el carrusel.
 ═══════════════════════════════════════════════ */
 #intro {
   position: fixed;
@@ -1488,8 +1488,12 @@ body {
   aspect-ratio: 34 / 30;
   z-index: 0;                   /* detrás de los textos */
   transform-origin: 50% 50%;    /* gira sobre su centro, sin moverse de sitio */
-  animation: logoIdle 2.6s ease-in-out infinite, retroFlicker 8s steps(1) -2s infinite;
+  animation: logoIdle 2.6s ease-in-out infinite;
+  pointer-events: auto;         /* se puede clicar / tocar para golpearlo */
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
+.intro-logo.squash { pointer-events: none; }
 .intro-logo img {
   position: absolute;
   inset: 0;
@@ -1504,6 +1508,40 @@ body {
   0%, 100% { transform: rotate(-4deg); }
   50%      { transform: rotate(4deg); }
 }
+/* ── GOLPE AL CLICARLO ──
+   Se encoge y estira como si le dieran un porrazo, parpadea en blanco un
+   instante y suelta partículas pixeladas (las crea main.js). */
+.intro-logo img.hit { animation: logoHit .34s ease-out; }
+@keyframes logoHit {
+  0%   { transform: scale(1, 1)       rotate(0deg);  filter: url(#retroFxObj) brightness(2.4); }
+  20%  { transform: scale(1.18, .8)   rotate(-6deg); filter: url(#retroFxObj) brightness(1.6); }
+  45%  { transform: scale(.9, 1.14)   rotate(5deg);  filter: url(#retroFxObj); }
+  70%  { transform: scale(1.05, .96)  rotate(-2deg); }
+  100% { transform: scale(1, 1)       rotate(0deg); }
+}
+/* partículas: cuadraditos del color del logo que salen disparados, un poco
+   transparentes, con movimiento suave (sin "steps", así va fluido) y una
+   pizca de gravedad: suben/salen hacia fuera y luego caen */
+.logo-spark {
+  position: absolute;
+  width: 4%;                    /* << TAMAÑO DE LAS PARTÍCULAS */
+  aspect-ratio: 1;
+  background: var(--c, #fff);
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: logoSpark var(--t, .6s) cubic-bezier(.2, .7, .35, 1) forwards;
+}
+@keyframes logoSpark {
+  0%   { transform: translate(-50%, -50%) rotate(0deg) scale(1);
+         opacity: .8; }                                   /* << TRANSPARENCIA (1 = opaco) */
+  55%  { transform: translate(calc(-50% + var(--dx) * .8), calc(-50% + var(--dy) * .8)) rotate(var(--rot, 90deg)) scale(.85);
+         opacity: .65; }
+  100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy) + var(--fall, 30px))) rotate(calc(var(--rot, 90deg) * 1.5)) scale(.5);
+         opacity: 0; }
+}
+
 /* aplastado */
 .intro-logo.squash { animation: none; }
 .intro-logo.squash img { animation: logoSquash .6s ease-out forwards; }
@@ -1543,13 +1581,13 @@ body {
 }
 /* "portfolio" se hunde un poco cuando "game design" le cae encima */
 .intro-piece.hit { animation: introHit .45s ease-out; }
-/* ya en el suelo: flotan y parpadean como antes */
+/* ya en el suelo: flotan (sin parpadeo) */
 .intro-piece.landed { visibility: visible; }
 .intro-piece.landed .intro-svg-game {
-  animation: introFloat 3.6s ease-in-out infinite, retroFlicker 7s steps(1) infinite;
+  animation: introFloat 3.6s ease-in-out infinite;
 }
 .intro-piece.landed .intro-svg-portfolio {
-  animation: introFloat 4.2s ease-in-out -1.6s infinite, retroFlicker 9s steps(1) -3s infinite;
+  animation: introFloat 4.2s ease-in-out -1.6s infinite;
 }
 
 /* Si el SVG no se pudo meter en la página y queda como imagen, el
@@ -1589,7 +1627,7 @@ img.intro-svg {
    Solo se mueve el palo, girando sobre el punto donde entra en la base. */
 .intro-lever {
   position: absolute;
-  top: 20%;
+  top: 25%;
   right: 0;
   translate: 0 -50%;
   z-index: 3;
@@ -1603,11 +1641,6 @@ img.intro-svg {
   -webkit-tap-highlight-color: transparent;
 }
 .intro-lever.pulled { cursor: default; }
-/* parpadeo retro, a juego con los textos (el filtro de tele antigua
-   #retroFxObj está en .lever-art img). */
-.intro-lever {
-  animation: retroFlicker 7.5s steps(1) -4s infinite;
-}
 .intro-lever:focus-visible { outline: 2px dashed rgba(37,37,37,.5); outline-offset: 4px; }
 .lever-art {
   position: absolute;
@@ -1651,6 +1684,33 @@ img.intro-svg {
   100% { transform: rotate(58deg); }
 }
 
+/* ── APERTURA POR LA MITAD ──
+   Cuando "game design" termina de caer, main.js pone #intro.split: el fondo
+   (que está dos veces, recortado en mitad de arriba y mitad de abajo) se
+   abre en horizontal. Arriba se van "game design" y la palanca; abajo,
+   "portfolio". Detrás quedan los discos. */
+.intro-bg-top    { clip-path: inset(0 0 50% 0); }
+.intro-bg-bottom { clip-path: inset(50% 0 0 0); }
+/* el fondo empieza a abrirse 0.4s DESPUÉS que los textos: así "game design"
+   sube antes y "portfolio" baja antes, y las mitades van detrás.
+   (duración + retraso = 1.4s; SPLIT_MS en main.js tiene que ser algo más) */
+.intro-bg { transition: translate 1s cubic-bezier(.7, 0, .25, 1) .4s; }   /* << RETRASO DEL FONDO */
+/* los textos y la palanca se mueven con "transform" (funciona en todos los
+   navegadores, también en iPhones algo antiguos) */
+.intro-piece { transition: transform 1.5s cubic-bezier(0.9, 0, .25, 1.7); }   /* << VELOCIDAD DE LOS TEXTOS */
+.intro-lever { transition: transform 1s cubic-bezier(.7, 0, .25, 1); }
+#intro.split { pointer-events: none; }
+#intro.split .intro-bg-top        { translate: 0 -62vh; }
+#intro.split .intro-bg-bottom     { translate: 0 62vh; }
+/* "game design" sube con la mitad de arriba y "portfolio" baja con la de
+   abajo, AL COMPÁS: misma distancia, misma duración y misma curva que el
+   fondo, así parecen pegados a su mitad. Si cambias 62vh, cámbialo en las
+   cuatro líneas (y en la palanca). */
+#intro.split .intro-piece-game      { transform: translateY(-62vh); }
+#intro.split .intro-piece-portfolio { transform: translateY(62vh); }
+#intro.split .intro-lever { transform: translateY(-62vh); }
+#intro.split .intro-load  { opacity: 0; }
+
 /* barra fina de carga abajo: solo si los textos ya cayeron y se intenta
    pasar antes de que terminen de cargar los modelos */
 .intro-load {
@@ -1690,16 +1750,26 @@ img.intro-svg {
 @media (max-width: 700px) {
   .intro-title { width: 93vw; }
 }
+/* en móvil y tablet (vertical y horizontal) la palanca un poco más grande,
+   para que se vea bien y sea fácil de tocar con el dedo */
+@media (max-width: 700px), (max-height: 520px) and (orientation: landscape), (max-width: 1100px) and (orientation: portrait) {
+  .intro-lever { width: calc(clamp(56px, min(7.5vw, 12dvh), 140px) * 1.45); }   /* << TAMAÑO DE LA PALANCA EN MÓVIL */
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .intro-bg, .intro-svg, .intro-piece, .lever-stick, .intro-logo, .intro-lever { animation: none !important; }
+  .intro-bg, .intro-svg, .intro-piece, .lever-stick, .intro-logo, .intro-lever, .intro-logo img.hit { animation: none !important; }
+  .logo-spark { display: none; }
+  /* sin movimiento: en vez de abrirse por la mitad, se desvanece */
+  .intro-bg, .intro-piece, .intro-lever { transition: none !important; }
+  #intro.split { opacity: 0; transition: opacity .3s; }
+  #intro.split * { translate: none !important; transform: none !important; }
   .intro-lever.pulled .lever-stick { transform: rotate(58deg); }
 }
 
 /* cada 4 segundos el palo da un tironcito para llamar la atención
    (solo mientras no se ha tirado de la palanca) */
 .intro-lever:not(.pulled) .lever-stick {
-  animation: leverNudge 4s ease-in-out 1.5s infinite;
+  animation: leverNudge 3.5s ease-in-out 1.5s infinite;
 }
 @keyframes leverNudge {
   0%, 82%, 100% { transform: rotate(0deg); }
