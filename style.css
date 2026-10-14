@@ -1603,12 +1603,10 @@ img.intro-svg {
   -webkit-tap-highlight-color: transparent;
 }
 .intro-lever.pulled { cursor: default; }
-/* estética retro, a juego con los textos: el filtro de tele antigua (#retroFxObj).
-   Va en el botón (no en .lever-art) para que las líneas salgan horizontales
-   aunque la palanca esté girada en la pared. */
+/* parpadeo retro, a juego con los textos (el filtro de tele antigua
+   #retroFxObj está en .lever-art img). */
 .intro-lever {
   animation: retroFlicker 7.5s steps(1) -4s infinite;
-  filter: url(#retroFxObj);     /* el borde blanco ya va dibujado en el pixel art */
 }
 .intro-lever:focus-visible { outline: 2px dashed rgba(37,37,37,.5); outline-offset: 4px; }
 .lever-art {
@@ -1623,6 +1621,9 @@ img.intro-svg {
   width: 100%;
   height: 100%;
   image-rendering: pixelated;   /* pixel art 32×32, como tu logo: así se ve nítido */
+  /* el filtro retro va en cada imagen y no en el botón: en el móvil
+     (sobre todo iPhone) el filtro recortaba el palo al salirse del botón */
+  filter: url(#retroFxObj);
 }
 .lever-stick {
   transform-origin: 50% 80%;    /* donde el palo entra en la base */
