@@ -154,8 +154,8 @@ const GAMES = [
     discColor:"#00275b",
     accentColor:"#0051b5",
     cover: "cover/",
-    discModel: "models/Over_zhousands.glb",
-    animModel: "models/Over_zhousands_anim.glb",
+    discModel: "models/Cooming_soon.glb",
+    animModel: "models/Cooming_soon_anim.glb",
     playUrl: "",
     gddUrl: "docs/"
   },
@@ -177,8 +177,8 @@ const GAMES = [
     discColor:"#5b3800",
     accentColor:"#b56700",
     cover: "cover/",
-    discModel: "models/Over_zhousands.glb",
-    animModel: "models/Over_zhousands_anim.glb",
+    discModel: "models/Cooming_soon.glb",
+    animModel: "models/Cooming_soon_anim.glb",
     playUrl: "",
     gddUrl: "docs/"
   }
