@@ -1278,6 +1278,26 @@ body {
   #btn-back::before { font-size: calc(10 * var(--u)); }
 }
 
+/* ═══════════════════════════════════════════════
+   DISCOS EN PANTALLAS GRANDES (desde 1600×880: 1080p, QHD, 4K...)
+   Los discos un poco más grandes y centrados en vertical en el hueco que
+   queda (antes se quedaban muy arriba). En portátiles normales no cambia.
+═══════════════════════════════════════════════ */
+@media (min-width: 1600px) and (min-height: 880px) {
+  :root {
+    --disc: 350px;              /* << TAMAÑO DE LOS DISCOS en 1080p (antes 280px) */
+    --disc-gap: 60px;
+  }
+  #carousel-outer { display: flex; align-items: center; min-height: 0; }
+  #carousel-track { width: 100%; }
+}
+@media (min-width: 1921px) and (min-height: 1081px) {
+  :root {
+    --disc: calc(350 * var(--u));   /* mismo tamaño que en 1080p, escalado */
+    --disc-gap: calc(60 * var(--u));
+  }
+}
+
 /* Textos de la pantalla de la PSP cuando la pantalla es más grande que
    la de siempre (712px): crecen en la misma proporción.
    --s = 1px de la pantalla de 712px. */
@@ -1494,6 +1514,10 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 .intro-logo.squash { pointer-events: none; }
+/* para dar curiosidad: cada pocos segundos da un saltito, y al pasar el
+   ratón por encima crece un poco */
+.intro-logo { transition: scale .18s ease-out; }
+@media (hover: hover) { .intro-logo:not(.squash):hover { scale: 1.07; } }
 .intro-logo img {
   position: absolute;
   inset: 0;
@@ -1502,6 +1526,15 @@ body {
   image-rendering: pixelated;   /* es pixel art: así se ve nítido a cualquier tamaño */
   transform-origin: 50% 100%;
   filter: url(#retroFxObj);     /* filtro retro (index.html, #retroFxObj) */
+  animation: logoHop 3.2s ease-in-out 1.2s infinite;   /* << SALTITO: cada 3.2s */
+}
+@keyframes logoHop {
+  0%, 74%, 100% { transform: translateY(0)    scale(1, 1); }
+  77%           { transform: translateY(0)    scale(1.08, .9); }    /* coge impulso */
+  83%           { transform: translateY(-16%) scale(.95, 1.07); }   /* salta */
+  89%           { transform: translateY(0)    scale(1.1, .88); }    /* aterriza */
+  93%           { transform: translateY(-4%)  scale(.98, 1.02); }   /* rebotito */
+  97%           { transform: translateY(0)    scale(1, 1); }
 }
 /* solo rota un poco hacia un lado y hacia el otro (los grados = cuánto) */
 @keyframes logoIdle {
@@ -1698,7 +1731,7 @@ img.intro-svg {
 /* los textos y la palanca se mueven con "transform" (funciona en todos los
    navegadores, también en iPhones algo antiguos) */
 .intro-piece { transition: transform 1.5s cubic-bezier(0.9, 0, .25, 1.7); }   /* << VELOCIDAD DE LOS TEXTOS */
-.intro-lever { transition: transform 1s cubic-bezier(.7, 0, .25, 1); }
+.intro-lever { transition: transform 1.5s cubic-bezier(.9, 0, .25, 1.7); }
 #intro.split { pointer-events: none; }
 #intro.split .intro-bg-top        { translate: 0 -62vh; }
 #intro.split .intro-bg-bottom     { translate: 0 62vh; }
@@ -1757,7 +1790,7 @@ img.intro-svg {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .intro-bg, .intro-svg, .intro-piece, .lever-stick, .intro-logo, .intro-lever, .intro-logo img.hit { animation: none !important; }
+  .intro-bg, .intro-svg, .intro-piece, .lever-stick, .intro-logo, .intro-lever, .intro-logo img, .intro-logo img.hit { animation: none !important; }
   .logo-spark { display: none; }
   /* sin movimiento: en vez de abrirse por la mitad, se desvanece */
   .intro-bg, .intro-piece, .intro-lever { transition: none !important; }
@@ -1777,4 +1810,46 @@ img.intro-svg {
   90%           { transform: rotate(-2deg); }
   94%           { transform: rotate(6deg); }
   97%           { transform: rotate(-1deg); }
+}
+
+/* ═══════════════════════════════════════════════
+   JUEGOS "PRÓXIMAMENTE" (comingSoon: true en main.js)
+   Aviso arriba de la descripción y botones JUGAR / VER GDD bloqueados con
+   un candado. Va en "em" para escalar como el resto del texto de la PSP.
+═══════════════════════════════════════════════ */
+.sg-soon {
+  border: 2px dashed rgba(37, 37, 37, .35);
+  border-radius: 6px;
+  padding: .7em .9em;
+  margin-bottom: 1em;
+  background: rgba(255, 255, 255, .45);
+}
+.sg-soon p { margin: .45em 0 0; }
+.sg-soon-badge {
+  display: inline-block;
+  font-family: var(--retro);
+  font-size: .78em;
+  font-weight: 700;
+  letter-spacing: .14em;
+  color: #fff;
+  background: var(--accent, var(--dark));
+  padding: .3em .7em;
+  border-radius: 3px;
+  box-shadow: 0 .2em 0 rgba(0,0,0,.25);
+}
+.psp-act-btn.locked {
+  background: #6c6c6c;
+  color: rgba(255, 255, 255, .75);
+  cursor: not-allowed;
+  box-shadow: 0 3px 0 rgba(0,0,0,.25);
+}
+.psp-act-btn.locked:hover { background: #6c6c6c; transform: none; }
+.psp-act-btn.locked .psp-icon { color: #ffd166; }   /* candado */
+.psp-act-btn.denied { animation: lockShake .35s ease-in-out; }
+@keyframes lockShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(2px); }
 }

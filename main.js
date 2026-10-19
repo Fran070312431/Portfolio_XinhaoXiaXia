@@ -5,6 +5,9 @@
    features  → (opcional) características: [título, texto]
    roleTitle → tu papel en el juego; role → lo que hiciste (una línea por punto)
    gameJam   → true si se hizo en una game jam (sale la etiqueta "GAME JAM")
+   comingSoon→ true si aún no está listo: portada "coming soon", texto de
+               "más contenido próximamente" y JUGAR / VER GDD bloqueados
+               con un candado (al quitarlo, todo vuelve a funcionar normal)
 */
 const GAMES = [
   {
@@ -138,31 +141,10 @@ const GAMES = [
     gddUrl: "docs/GDD_OverZhousands.pdf"
   },
   {
-    title:"Drowned Cape - Cooming Soon",
-    genre:"Supervivencia y gestión con defensa",
-    year:"2026",
-    desc:[
-      ""
-    ],
-    roleTitle:"Diseñador",
-    role:[
-      "",
-      "",
-      ""
-    ],
-    tags:["Unity","3D","Supervivencia","Monstruos"],
-    discColor:"#00275b",
-    accentColor:"#0051b5",
-    cover: "cover/",
-    discModel: "models/Cooming_soon.glb",
-    animModel: "models/Cooming_soon_anim.glb",
-    playUrl: "",
-    gddUrl: "docs/"
-  },
-  {
     title:"Cooming Soon",
     genre:"",
     year:"2026",
+    comingSoon: true,
     gameJam: true,
     desc:[
       ""
@@ -176,6 +158,29 @@ const GAMES = [
     tags:["Unity","3D"],
     discColor:"#5b3800",
     accentColor:"#b56700",
+    cover: "cover/",
+    discModel: "models/Cooming_soon.glb",
+    animModel: "models/Cooming_soon_anim.glb",
+    playUrl: "",
+    gddUrl: "docs/"
+  },
+  {
+    title:"Drowned Cape - Cooming Soon",
+    genre:"Supervivencia y gestión con defensa",
+    year:"2026",
+    comingSoon: true,
+    desc:[
+      ""
+    ],
+    roleTitle:"Diseñador",
+    role:[
+      "",
+      "",
+      ""
+    ],
+    tags:["Unity","3D","Supervivencia","Monstruos"],
+    discColor:"#00275b",
+    accentColor:"#0051b5",
     cover: "cover/",
     discModel: "models/Cooming_soon.glb",
     animModel: "models/Cooming_soon_anim.glb",
@@ -1107,13 +1112,16 @@ function bootScreen(game) {
     // Imagen de portada — se pone como fondo del div #sg-bg-img,
     // que es el elemento que de verdad tiene el CSS de background-size:cover.
     if (DOM.sgBgImg) {
-      const coverUrl = game.cover || game.bgImage || game.image || '';
+      let coverUrl = game.cover || game.bgImage || game.image || '';
+      if (coverUrl.endsWith('/')) coverUrl = '';          // "cover/" sin archivo
+      if (game.comingSoon && !coverUrl) coverUrl = COMING_SOON_COVER;
       DOM.sgBgImg.style.backgroundImage = coverUrl ? `url('${coverUrl}')` : 'none';
     }
 
     // Enlaces de acción
-    if (DOM.btnPlay) DOM.btnPlay.href = game.playUrl || '#';
-    if (DOM.btnGdd)  DOM.btnGdd.href  = game.gddUrl  || '#';
+    // (bloqueados con candado si el juego es "próximamente" o no hay enlace)
+    setActionBtn(DOM.btnPlay, game.playUrl, game.comingSoon);
+    setActionBtn(DOM.btnGdd,  game.gddUrl,  game.comingSoon);
 
     if (DOM.sgTags) {
       DOM.sgTags.innerHTML = game.tags
@@ -1123,6 +1131,39 @@ function bootScreen(game) {
 
     updateClock();
   }, 300 + PSP_LOAD_MS);
+}
+
+/* Portada de los juegos "próximamente" (si no tienen una propia) */
+const COMING_SOON_COVER = 'cover/Coming_soon_cover.webp';
+
+/* Botones JUGAR / VER GDD: normales, o bloqueados con un candado cuando el
+   juego aún no está listo (comingSoon) o no tiene enlace. */
+function setActionBtn(btn, url, comingSoon) {
+  if (!btn) return;
+  const icon = btn.querySelector('.psp-icon');
+  if (icon && !icon.dataset.orig) icon.dataset.orig = icon.textContent;
+  const hasUrl = url && url !== '#' && !String(url).endsWith('/');
+  const locked = !!comingSoon || !hasUrl;
+  btn.classList.toggle('locked', locked);
+  if (!btn.dataset.lockBound) {              // al pulsarlo bloqueado: tiembla
+    btn.dataset.lockBound = '1';
+    btn.addEventListener('click', e => {
+      if (!btn.classList.contains('locked')) return;
+      e.preventDefault();
+      btn.classList.remove('denied'); void btn.offsetWidth; btn.classList.add('denied');
+    });
+  }
+  if (locked) {
+    btn.removeAttribute('href');
+    btn.setAttribute('aria-disabled', 'true');
+    btn.tabIndex = -1;
+    if (icon) icon.innerHTML = '<i class="fa-solid fa-lock"></i>';
+  } else {
+    btn.href = url;
+    btn.removeAttribute('aria-disabled');
+    btn.removeAttribute('tabindex');
+    if (icon) icon.textContent = icon.dataset.orig;
+  }
 }
 
 /* Descripción del juego en la pantalla de la PSP: párrafos, características
@@ -1152,18 +1193,30 @@ function renderDesc(game) {
 
   el.style.setProperty('--accent', game.accentColor);
   const parts = [];
-  const paras = Array.isArray(game.desc) ? game.desc : [game.desc];
+  const clean = arr => (Array.isArray(arr) ? arr : [arr]).filter(t => t && String(t).trim());
+  const paras = clean(game.desc);
+  const roles = clean(game.role);
+
+  if (game.comingSoon) {
+    // aviso de "próximamente" arriba de la descripción
+    const box = make('div', 'sg-soon');
+    box.appendChild(make('span', 'sg-soon-badge', 'PRÓXIMAMENTE'));
+    box.appendChild(make('p', null, paras.length
+      ? 'Este proyecto está en desarrollo. Pronto habrá más contenido.'
+      : 'Este proyecto está en desarrollo. Más contenido próximamente.'));
+    parts.push(box);
+  }
   paras.forEach(t => parts.push(make('p', null, t)));
 
   if (game.features && game.features.length) {
     parts.push(make('h3', 'sg-sub', 'Características principales'));
     parts.push(list(game.features, true));
   }
-  if (game.role && game.role.length) {
+  if (roles.length) {
     const h = make('h3', 'sg-sub', 'Mi papel');
     if (game.roleTitle) h.appendChild(make('span', 'sg-sub-role', ' · ' + game.roleTitle));
     parts.push(h);
-    parts.push(list(game.role, false));
+    parts.push(list(roles, false));
   }
   el.replaceChildren(...parts);
   if (DOM.sgInfoPage) DOM.sgInfoPage.scrollTop = 0;
@@ -1317,6 +1370,11 @@ if (introEl) {
   // partículas pixeladas. Deja de funcionar cuando "portfolio" lo aplasta.
   const logoEl = introEl.querySelector('.intro-logo');
   const SPARK_COLORS = ['#ffffff', '#b32a2e', '#ffffff', '#212222', '#ffffff', '#b32a2e'];
+  // al terminar el golpe, vuelve el saltito de siempre
+  const logoImg = logoEl && logoEl.querySelector('img');
+  if (logoImg) logoImg.addEventListener('animationend', e => {
+    if (e.animationName === 'logoHit') logoImg.classList.remove('hit');
+  });
   if (logoEl) logoEl.addEventListener('pointerdown', e => {
     if (logoEl.classList.contains('squash') || logoEl.classList.contains('gone')) return;
     const img = logoEl.querySelector('img');
