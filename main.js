@@ -108,7 +108,7 @@ const GAMES = [
     cover: "cover/Rush_cover.webp",
     discModel: "models/Rush_hour.glb",
     animModel: "models/Rush_hour_anim.glb",
-    playUrl: "https://itch.io",
+    playUrl: "https://franxi.itch.io/rush-hour-car",
     gddUrl: "docs/GDD_RushHour.pdf"
   },
   {
@@ -403,7 +403,7 @@ GAMES.forEach((game, i) => {
 });
 
 /* ═══ SONIDO ═══ */
-let audioCtx = null;   // se crea una vez y se reutiliza (antes uno nuevo por cada cartucho)
+let audioCtx = null;
 function playPSPSound() {
   try {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
