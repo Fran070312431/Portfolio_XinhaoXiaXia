@@ -5,6 +5,8 @@
    features  → (opcional) características: [título, texto]
    roleTitle → tu papel en el juego; role → lo que hiciste (una línea por punto)
    gameJam   → true si se hizo en una game jam (sale la etiqueta "GAME JAM")
+   trailer   → (opcional) vídeo .mp4 que se reproduce en la portada de la PSP
+   gallery   → (opcional) capturas que salen en la info (se amplían al tocarlas)
    comingSoon→ true si aún no está listo: portada "coming soon", texto de
                "más contenido próximamente" y JUGAR / VER GDD bloqueados
                con un candado (al quitarlo, todo vuelve a funcionar normal)
@@ -27,6 +29,8 @@ const GAMES = [
     discColor:"#5b4100",
     accentColor:"#b58200",
     cover: "cover/Corazon_cover.webp",
+    trailer: "videos/Corazon_trailer.mp4",
+    gallery: ["galeria/corazon_1.webp","galeria/corazon_2.webp","galeria/corazon_3.webp"],
     discModel: "models/Corazon_de_guerra.glb",
     animModel: "models/Corazon_de_guerra_anim.glb",
     playUrl: "https://xiilastudio.itch.io/corazon-de-guerra",
@@ -59,6 +63,7 @@ const GAMES = [
     discColor:"#4e0000",
     accentColor:"#b90000",
     cover: "cover/Coma_cover.webp",
+    gallery: ["galeria/coma_1.webp","galeria/coma_2.webp","galeria/coma_3.webp"],
     discModel: "models/Que_no_te_coma_el_amor.glb",
     animModel: "models/Que_no_te_coma_el_amor_anim.glb",
     playUrl: "https://axiada.itch.io/tesiscoma",
@@ -84,6 +89,8 @@ const GAMES = [
     discColor:"#29003e",
     accentColor:"#8101c1",
     cover: "cover/Clashing_cover.webp",
+    trailer: "videos/Clashing_trailer.mp4",
+    gallery: ["galeria/clashing_1.webp","galeria/clashing_2.webp","galeria/clashing_3.webp"],
     discModel: "models/Clashing_blocks.glb",
     animModel: "models/Clashing_blocks_anim.glb",
     playUrl: "https://clashing-blocks.itch.io/clashing-blocks",
@@ -106,9 +113,11 @@ const GAMES = [
     discColor:"#6a2300",
     accentColor:"#ed5001",
     cover: "cover/Rush_cover.webp",
+    trailer: "videos/Rush_trailer.mp4",
+    gallery: ["galeria/rush_1.webp","galeria/rush_2.webp","galeria/rush_3.webp"],
     discModel: "models/Rush_hour.glb",
     animModel: "models/Rush_hour_anim.glb",
-    playUrl: "https://franxi.itch.io/rush-hour-car",
+    playUrl: "https://itch.io",
     gddUrl: "docs/GDD_RushHour.pdf"
   },
   {
@@ -135,34 +144,11 @@ const GAMES = [
     discColor:"#0e4500",
     accentColor:"#1fb501",
     cover: "cover/Over_cover.webp",
+    gallery: ["galeria/over_1.webp","galeria/over_2.webp","galeria/over_3.webp","galeria/over_4.webp"],
     discModel: "models/Over_zhousands.glb",
     animModel: "models/Over_zhousands_anim.glb",
     playUrl: "https://sickgecko.itch.io/over-zhousands",
     gddUrl: "docs/GDD_OverZhousands.pdf"
-  },
-  {
-    title:"Cooking Barquillos in Madrid - Cooming Soon",
-    genre:"Gestión de tiempo y Cocina",
-    year:"2026",
-    comingSoon: true,
-    gameJam: true,
-    desc:[
-      ""
-    ],
-    roleTitle:"Diseñador",
-    role:[
-      "",
-      "",
-      ""
-    ],
-    tags:["Unity","2D","Acción Arcade","Pixel Art"],
-    discColor:"#5b3800",
-    accentColor:"#b56700",
-    cover: "cover/",
-    discModel: "models/Cooming_soon.glb",
-    animModel: "models/Cooming_soon_anim.glb",
-    playUrl: "",
-    gddUrl: "docs/"
   },
   {
     title:"Drowned Cape - Cooming Soon",
@@ -181,6 +167,30 @@ const GAMES = [
     tags:["Unity","3D","Supervivencia","Monstruos"],
     discColor:"#00275b",
     accentColor:"#0051b5",
+    cover: "cover/",
+    discModel: "models/Cooming_soon.glb",
+    animModel: "models/Cooming_soon_anim.glb",
+    playUrl: "",
+    gddUrl: "docs/"
+  },
+  {
+    title:"Cooming Soon",
+    genre:"",
+    year:"2026",
+    comingSoon: true,
+    gameJam: true,
+    desc:[
+      ""
+    ],
+    roleTitle:"Diseñador",
+    role:[
+      "",
+      "",
+      ""
+    ],
+    tags:["Unity","3D"],
+    discColor:"#5b3800",
+    accentColor:"#b56700",
     cover: "cover/",
     discModel: "models/Cooming_soon.glb",
     animModel: "models/Cooming_soon_anim.glb",
@@ -227,7 +237,12 @@ let pspFullscreen = false;
 
 /* ═══ ESTADO ═══ */
 let currentIdx  = 0;
-let trackOffset = 0;        
+let trackOffset = 0;
+/* Carrusel en bucle: después del último disco vuelve el primero (y al revés).
+   curPos es la posición "continua" del carrusel (va animándose hacia
+   targetPos); cada disco se coloca a su distancia más corta de ella. */
+let curPos = 0, targetPos = 0;
+const wrapDelta = (d, n) => { d = ((d % n) + n) % n; return d > n / 2 ? d - n : d; };   // -n/2 .. n/2        
 let appState    = 'carousel';
 let umdScenes   = [];
 let umdTemplates = [];
@@ -288,6 +303,10 @@ function cacheDOM() {
   DOM.sgInfoPage       = document.getElementById('sg-info-page');
   DOM.sgScrollArrow    = document.getElementById('sg-scroll-arrow');
   DOM.sgScrollArrowIcon= document.getElementById('sg-scroll-arrow-icon');
+  DOM.heroVideo        = document.getElementById('sg-hero-video');
+  DOM.soundBtn         = document.getElementById('sg-sound');
+  DOM.lightbox         = document.getElementById('sg-lightbox');
+  setupTrailerAndGallery();
 
   DOM.btnExtras        = document.getElementById('btn-extras');
   DOM.circleFill       = document.getElementById('circle-fill');
@@ -299,6 +318,7 @@ function cacheDOM() {
   if (DOM.sgScrollArrow && DOM.sgContent) {
     DOM.sgScrollArrow.addEventListener('click', () => {
       const showingInfo = DOM.sgContent.classList.toggle('showing-info');
+      if (showingInfo) pauseTrailer(); else playTrailer();   // el vídeo solo corre si se ve
       if (DOM.sgScrollArrowIcon) {
         DOM.sgScrollArrowIcon.classList.toggle('fa-chevron-down', !showingInfo);
         DOM.sgScrollArrowIcon.classList.toggle('fa-chevron-up', showingInfo);
@@ -403,7 +423,7 @@ GAMES.forEach((game, i) => {
 });
 
 /* ═══ SONIDO ═══ */
-let audioCtx = null;
+let audioCtx = null;   // se crea una vez y se reutiliza (antes uno nuevo por cada cartucho)
 function playPSPSound() {
   try {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -572,68 +592,44 @@ function buildCarousel() {
       });
 
     } else {
-      mesh = makeFallbackUMD(game);
+      // Sin modelo (.glb que no carga): no se dibuja nada en su sitio. Antes
+      // se fabricaba un disco con código; ya no, para no gastar de más.
+      mesh = null;
     }
 
-    scene.add(mesh);
+    if (mesh) scene.add(mesh);
     item.addEventListener('click', () => onUMDClick(i));
 
     umdScenes.push({
       renderer, scene, camera, mesh, item,
       game,
       scale: 1, opacity: 1, sideOffset: 0,
-      baseRotX: mesh.rotation.x,
-      baseRotY: mesh.rotation.y,
+      baseRotX: mesh ? mesh.rotation.x : 0,
+      baseRotY: mesh ? mesh.rotation.y : 0,
       lastW: 0, lastH: 0
     });
   });
 }
 
-function makeFallbackUMD(game) {
-  const g = new THREE.Group();
-  const col = new THREE.Color(game.discColor);
-  const shell = new THREE.Mesh(
-    new THREE.CylinderGeometry(1.9,1.9,0.26,64),
-    new THREE.MeshStandardMaterial({color:0x202020,metalness:0.3,roughness:0.5}));
-  shell.rotation.x = Math.PI/2; g.add(shell);
-
-  const disc = new THREE.Mesh(
-    new THREE.CylinderGeometry(1.5,1.5,0.09,64),
-    new THREE.MeshStandardMaterial({color:col,metalness:0.7,roughness:0.15}));
-  disc.rotation.x = Math.PI/2; disc.position.z = 0.1; g.add(disc);
-
-  for (let r=0.3; r<1.45; r+=0.09) {
-    const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(r,0.005,8,64),
-      new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:0.06,metalness:0.9}));
-    ring.position.z = 0.12; g.add(ring);
-  }
-
-  const hole = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.15,0.15,0.12,32),
-    new THREE.MeshStandardMaterial({color:0x080808}));
-  hole.rotation.x = Math.PI/2; hole.position.z = 0.11; g.add(hole);
-
-  const rim = new THREE.Mesh(
-    new THREE.TorusGeometry(1.9,0.022,12,64),
-    new THREE.MeshStandardMaterial({color:0x888888,metalness:0.9,roughness:0.1}));
-  g.add(rim);
-  return g;
-}
-
 /* ═══ NAVEGACIÓN ═══ */
 function navigate(dir) {
   if (appState !== 'carousel') return;
-  const n = currentIdx + dir;
-  if (n < 0 || n >= GAMES.length) return;
-  currentIdx = n;
+  goToDisc(currentIdx + dir);              // en bucle: no hay principio ni final
+}
+
+/* Va al disco idx por el camino más corto (dando la vuelta si hace falta) */
+function goToDisc(idx) {
+  const N = GAMES.length;
+  const d = Math.round(wrapDelta(idx - currentIdx, N));
+  targetPos += d;
+  currentIdx = ((Math.round(targetPos) % N) + N) % N;
   updateLabels();
   updateDots();
 }
 
 function onUMDClick(idx) {
   if (appState !== 'carousel') return;
-  if (idx !== currentIdx) { currentIdx = idx; updateLabels(); updateDots(); return; }
+  if (idx !== currentIdx) { goToDisc(idx); return; }
   startInsert();
 }
 
@@ -663,7 +659,7 @@ function buildDots() {
   GAMES.forEach((_, i) => {
     const b = document.createElement('button');
     b.className = 'nav-dot' + (i === 0 ? ' active' : '');
-    b.onclick = () => { if(appState!=='carousel') return; currentIdx=i; updateLabels(); updateDots(); };
+    b.onclick = () => { if(appState!=='carousel') return; goToDisc(i); };
     DOM.dotsNav.appendChild(b);
   });
 }
@@ -681,14 +677,15 @@ function updateScales() {
   const inserting = appState !== 'carousel';
 
   umdScenes.forEach((s, i) => {
-    const dist = Math.abs(i - currentIdx);
+    const rel  = wrapDelta(i - currentIdx, GAMES.length);   // distancia en bucle
+    const dist = Math.abs(Math.round(rel));
     const targetScale   = dist===0 ? 1.2 : dist===1 ? 1.05 : 0.95;
     const targetOpacity = dist===0 ? 1    : dist===1 ? 0.8 : 0;
     s.targetScale   = targetScale;
     s.targetOpacity = targetOpacity;
 
     if (inserting && i !== currentIdx) {
-      const dir = i < currentIdx ? -1 : 1;
+      const dir = rel < 0 ? -1 : 1;
       // Hasta 1920px igual que siempre (700px). En pantallas más anchas
       // se apartan más, si no se quedaban a la vista.
       const off = window.innerWidth > 1920
@@ -848,6 +845,8 @@ function startInsert() {
 function goBack() {
   if (appState !== 'psp') return;
   appState = 'inserting';
+  stopTrailer();
+  closeLightbox();
   if (DOM.btnBack)    DOM.btnBack.classList.remove('visible');
   if (DOM.screenGame) DOM.screenGame.classList.remove('active');
   if (DOM.screenIdle) DOM.screenIdle.style.display = 'flex';
@@ -926,14 +925,15 @@ function buildPSP() {
     pspModel.rotation.set(0, 0, 0);
     pspModel.traverse(n => { if(n.isMesh){ n.castShadow = true; n.receiveShadow = true; } });
   } else {
-    pspModel = makeFallbackPSP();
+    pspModel = null;   // sin sony_psp.glb no se dibuja la consola (ya no se fabrica una con código)
   }
-  pspScene.add(pspModel);
-
-  // Tamaño real de la PSP ya escalada (para encuadrarla en layoutPSP)
-  const size = new THREE.Box3().setFromObject(pspModel).getSize(new THREE.Vector3());
-  pspScene.userData.pspW = size.x;
-  pspScene.userData.pspH = size.y;
+  if (pspModel) {
+    pspScene.add(pspModel);
+    // Tamaño real de la PSP ya escalada (para encuadrarla en layoutPSP)
+    const size = new THREE.Box3().setFromObject(pspModel).getSize(new THREE.Vector3());
+    pspScene.userData.pspW = size.x;
+    pspScene.userData.pspH = size.y;
+  }
 
   layoutPSP();
   // Compilar los shaders ya, para que no haya tirón la primera vez que sale
@@ -1040,30 +1040,9 @@ function layoutPSP() {
   placeProjected();
 }
 
-function makeFallbackPSP() {
-  const g=new THREE.Group();
-  const mat=new THREE.MeshStandardMaterial({color:0x1c1c1c,metalness:0.25,roughness:0.45});
-  const body=new THREE.Mesh(new THREE.BoxGeometry(12,5.5,1.0),mat); g.add(body);
-  const bez=new THREE.Mesh(new THREE.BoxGeometry(7.2,4.5,0.18),new THREE.MeshStandardMaterial({color:0x0a0a0a,roughness:0.9}));
-  bez.position.set(0,0.4,0.58); g.add(bez);
-  const scr=new THREE.Mesh(new THREE.PlaneGeometry(6.6,4.0),new THREE.MeshStandardMaterial({color:0x0a0a20,emissive:0x0a0a20,emissiveIntensity:0.5}));
-  scr.position.set(0,0.4,0.68); g.add(scr);
-  const shMat=new THREE.MeshStandardMaterial({color:0x252525});
-  [-4.6,4.6].forEach(x=>{ const s=new THREE.Mesh(new THREE.BoxGeometry(2.5,0.45,0.9),shMat); s.position.set(x,2.8,0); g.add(s); });
-  [[-4.2,-0.7,0.55,0,1.6,0.12],[-4.2,-0.7,0.55,1.6,0,0.12]].forEach(([x,y,z,w,h,d])=>{
-    const m=new THREE.Mesh(new THREE.BoxGeometry(w||0.5,h||1.6,d),new THREE.MeshStandardMaterial({color:0x181818}));
-    m.position.set(x,y,z); g.add(m);
-  });
-  [[0,0.55],[0.55,0],[-0.55,0],[0,-0.55]].forEach(([bx,by],idx)=>{
-    const btn=new THREE.Mesh(new THREE.CylinderGeometry(0.24,0.24,0.12,16),
-      new THREE.MeshStandardMaterial({color:[0x1a3a7a,0x8b1010,0x1a1a7a,0x4a3a00][idx],metalness:0.2}));
-    btn.rotation.x=Math.PI/2; btn.position.set(4.3+bx*0.88,-0.7+by*0.88,0.58); g.add(btn);
-  });
-  return g;
-}
-
 /* ═══ PANTALLA ═══ */
 function bootScreen(game) {
+  updateClock();                                    // la hora, desde el principio
   if (DOM.sgBody) DOM.sgBody.scrollTop = 0;
   if (DOM.sgContent) DOM.sgContent.scrollTop = 0;   // a pantalla completa, empezar arriba
 
@@ -1108,6 +1087,7 @@ function bootScreen(game) {
 
     if (DOM.sgYear) DOM.sgYear.textContent = game.year;
     if (DOM.sgDesc) renderDesc(game);
+    renderGallery(game);
 
     // Imagen de portada — se pone como fondo del div #sg-bg-img,
     // que es el elemento que de verdad tiene el CSS de background-size:cover.
@@ -1115,6 +1095,9 @@ function bootScreen(game) {
       let coverUrl = game.cover || game.bgImage || game.image || '';
       if (coverUrl.endsWith('/')) coverUrl = '';          // "cover/" sin archivo
       if (game.comingSoon && !coverUrl) coverUrl = COMING_SOON_COVER;
+      // Con tráiler: solo el vídeo (sin imagen de portada). Sin tráiler: la portada.
+      if (game.trailer) coverUrl = '';
+      startTrailer(game);
       DOM.sgBgImg.style.backgroundImage = coverUrl ? `url('${coverUrl}')` : 'none';
     }
 
@@ -1132,6 +1115,116 @@ function bootScreen(game) {
     updateClock();
   }, 300 + PSP_LOAD_MS);
 }
+
+/* ═══ TRÁILER EN LA PORTADA ═══
+   El vídeo solo se descarga cuando se abre ese juego en la PSP (preload
+   "none" y el src se pone al arrancar), empieza en silencio (los navegadores
+   no dejan reproducir con sonido sin tocar antes) y se para al ir a la info
+   o al volver al menú, para no gastar batería ni datos. */
+let soundOn = false;
+function setupTrailerAndGallery() {
+  if (DOM.soundBtn) DOM.soundBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    soundOn = !soundOn;
+    if (DOM.heroVideo) {
+      DOM.heroVideo.muted = !soundOn;
+      if (soundOn) DOM.heroVideo.play().catch(() => {});
+    }
+    updateSoundIcon();
+  });
+  if (DOM.lightbox) {
+    DOM.lightbox.addEventListener('click', e => {
+      const act = e.target.closest('[data-lb]');
+      if (act && act.dataset.lb === 'prev') return stepLightbox(-1);
+      if (act && act.dataset.lb === 'next') return stepLightbox(1);
+      if (!e.target.closest('img')) closeLightbox();   // fuera de la imagen o la X
+    });
+  }
+}
+function updateSoundIcon() {
+  if (!DOM.soundBtn) return;
+  const i = DOM.soundBtn.querySelector('i');
+  if (i) i.className = 'fa-solid ' + (soundOn ? 'fa-volume-high' : 'fa-volume-xmark');
+  DOM.soundBtn.setAttribute('aria-label', soundOn ? 'Quitar sonido' : 'Activar sonido');
+}
+function startTrailer(game) {
+  const v = DOM.heroVideo;
+  if (!v) return;
+  const hero = DOM.sgBgImg;
+  if (!game.trailer) { stopTrailer(); return; }
+  v.removeAttribute('poster');
+  v.muted = !soundOn;
+  if (v.dataset.src !== game.trailer) {
+    // .mp4 para casi todos los navegadores y, si existe, el mismo vídeo en
+    // .webm de reserva (para los pocos que no leen mp4)
+    v.dataset.src = game.trailer;
+    const mp4 = document.createElement('source');
+    mp4.src = game.trailer; mp4.type = 'video/mp4';
+    const webm = document.createElement('source');
+    webm.src = game.trailer.replace(/\.mp4$/i, '.webm'); webm.type = 'video/webm';
+    v.replaceChildren(mp4, webm);
+    v.load();
+  }
+  hero && hero.classList.add('has-video');
+  playTrailer();
+}
+function playTrailer() {
+  const v = DOM.heroVideo;
+  if (!v || !v.dataset.src || appState !== 'psp' && appState !== 'inserting') return;
+  v.play().catch(() => {});
+}
+function pauseTrailer() { if (DOM.heroVideo) DOM.heroVideo.pause(); }
+function stopTrailer() {
+  const v = DOM.heroVideo;
+  if (DOM.sgBgImg) DOM.sgBgImg.classList.remove('has-video');
+  if (!v) return;
+  v.pause();
+  if (v.dataset.src) { delete v.dataset.src; v.replaceChildren(); v.load(); }   // deja de descargar
+}
+
+/* ═══ GALERÍA DE CAPTURAS (en la info) ═══ */
+let lbImages = [], lbIndex = 0;
+function renderGallery(game) {
+  // va al final de la descripción (así hereda su tamaño de letra y color)
+  const box = DOM.sgDesc;
+  if (!box) return;
+  const imgs = (game.gallery || []).filter(Boolean);
+  if (!imgs.length) return;
+  const h = document.createElement('h3');
+  h.className = 'sg-sub';
+  h.textContent = 'Capturas';
+  const grid = document.createElement('div');
+  grid.className = 'sg-gallery-grid';
+  imgs.forEach((src, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'sg-shot';
+    b.setAttribute('aria-label', 'Ampliar captura ' + (i + 1));
+    const im = document.createElement('img');
+    im.src = src; im.alt = ''; im.loading = 'lazy'; im.decoding = 'async';
+    b.appendChild(im);
+    b.addEventListener('click', () => openLightbox(imgs, i));
+    grid.appendChild(b);
+  });
+  box.append(h, grid);
+}
+function openLightbox(imgs, i) {
+  if (!DOM.lightbox) return;
+  lbImages = imgs; lbIndex = i;
+  showLightboxImage();
+  DOM.lightbox.hidden = false;
+  DOM.lightbox.classList.toggle('single', imgs.length < 2);
+}
+function showLightboxImage() {
+  const img = DOM.lightbox && DOM.lightbox.querySelector('img');
+  if (img) img.src = lbImages[lbIndex];
+}
+function stepLightbox(d) {
+  if (!lbImages.length) return;
+  lbIndex = (lbIndex + d + lbImages.length) % lbImages.length;
+  showLightboxImage();
+}
+function closeLightbox() { if (DOM.lightbox) DOM.lightbox.hidden = true; }
 
 /* Portada de los juegos "próximamente" (si no tienen una propia) */
 const COMING_SOON_COVER = 'cover/Coming_soon_cover.webp';
@@ -1222,12 +1315,15 @@ function renderDesc(game) {
   if (DOM.sgInfoPage) DOM.sgInfoPage.scrollTop = 0;
 }
 
+/* Hora real del dispositivo en la barra de arriba de la PSP. Se pone nada
+   más arrancar la PSP y se actualiza justo al cambiar cada minuto. */
 function updateClock() {
   if (clockTimer) clearTimeout(clockTimer);
+  const el = DOM.sgTime || document.getElementById('sg-time');
   const n = new Date();
-  if (DOM.sgTime) DOM.sgTime.textContent = String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
-  if (appState === 'psp') {
-    clockTimer = setTimeout(updateClock, 30000);
+  if (el) el.textContent = String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
+  if (appState === 'psp' || appState === 'inserting') {
+    clockTimer = setTimeout(updateClock, 60000 - (n.getSeconds() * 1000 + n.getMilliseconds()) + 50);
   }
 }
 
@@ -1426,6 +1522,12 @@ window.addEventListener('keydown', e => {
   // Antes, Enter sobre una flecha cambiaba de juego Y además insertaba.
   const onControl = e.target.closest && e.target.closest('button, a');
   if(e.key==='Enter'  && appState==='carousel' && !onControl) startInsert();
+  if (DOM.lightbox && !DOM.lightbox.hidden) {          // imagen ampliada abierta
+    if (e.key === 'Escape')     closeLightbox();
+    if (e.key === 'ArrowLeft')  stepLightbox(-1);
+    if (e.key === 'ArrowRight') stepLightbox(1);
+    return;
+  }
   if(e.key==='Escape' && appState==='psp')      goBack();
 });
 
@@ -1436,7 +1538,7 @@ window.addEventListener('resize', () => {
     if (!DOM.carouselTrack) return;   // todavía cargando
     measureItemWidth();
     if (appState === 'carousel') {
-      trackOffset = centeredOffset(currentIdx);
+      trackOffset = centeredOffset(0);       // el carrusel no se mueve: se mueven los discos
       applyTrackTransform(trackOffset);
     }
     layoutPSP();
@@ -1472,15 +1574,13 @@ function animLoop() {
   const carouselHidden = appState === 'psp';
 
   if (appState === 'carousel' || appState === 'inserting') {
-    const target = centeredOffset(currentIdx);
-    trackOffset += (target - trackOffset) * 0.1;
-    applyTrackTransform(trackOffset);
+    curPos += (targetPos - curPos) * 0.1;
+    if (Math.abs(targetPos - curPos) < 0.0005) curPos = targetPos;
   }
 
   if (!carouselHidden) updateScales();
 
   if (!carouselHidden) umdScenes.forEach((s, i) => {
-    if (!s.mesh) return;
     const isCenter = i === currentIdx;
 
     const isInsertingThisScene = insertingScene === s && appState !== 'carousel';
@@ -1490,16 +1590,19 @@ function animLoop() {
       s.sideOffset = (s.sideOffset ?? 0) + ((s.targetSideOffset ?? 0) - (s.sideOffset ?? 0)) * 0.1;
       // Solo se toca el estilo si ha cambiado (redondeado): cuando el disco
       // ya está quieto, el navegador no tiene que recalcular nada
-      const tf = `scale(${s.scale.toFixed(4)}) translateX(${s.sideOffset.toFixed(2)}px)`;
+      // posición en bucle: cada disco a su distancia más corta del centro
+      const slot  = wrapDelta(i - curPos, GAMES.length);
+      const shift = (slot - i) * ITEM_W;
+      const tf = `translateX(${shift.toFixed(1)}px) scale(${s.scale.toFixed(4)}) translateX(${s.sideOffset.toFixed(2)}px)`;
       const op = s.opacity.toFixed(3);
       if (tf !== s.lastTf) { s.item.style.transform = tf; s.lastTf = tf; }
       if (op !== s.lastOp) { s.item.style.opacity = op; s.lastOp = op; }
     }
 
     const isHidden = s.opacity < 0.01 && (s.targetOpacity ?? 0) < 0.01;
-    if (isHidden) return;
+    if (isHidden || !s.mesh) return;      // oculto o sin modelo: no se dibuja
 
-    const wobbleY = isCenter ? Math.sin(time * 0.7) * 0.07 : (i < currentIdx ? 0.1 : -0.1);
+    const wobbleY = isCenter ? Math.sin(time * 0.7) * 0.07 : (wrapDelta(i - currentIdx, GAMES.length) < 0 ? 0.1 : -0.1);
     const wobbleX = isCenter ? Math.sin(time * 0.45) * 0.04 : 0;
     s.mesh.rotation.y += (s.baseRotY + wobbleY - s.mesh.rotation.y) * 0.05;
     s.mesh.rotation.x += (s.baseRotX + wobbleX - s.mesh.rotation.x) * 0.05;

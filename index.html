@@ -151,7 +151,7 @@
       </div>
       <div id="screen-game">
         <div class="sg-topbar">
-          <span class="sg-time" id="sg-time">07:03</span>
+          <span class="sg-time" id="sg-time">--:--</span>
           <span class="sg-console">PROYECTO</span>
           <span class="sg-battery" id="sg-battery">■■■□□ 60%</span>
         </div>
@@ -166,6 +166,11 @@
                el único control de navegación es la flecha -->
           <div class="sg-content" id="sg-content">
             <div id="sg-bg-img" class="sg-hero-spacer">
+              <!-- tráiler del juego (main.js pone el vídeo de cada juego) -->
+              <video class="sg-hero-video" id="sg-hero-video" muted playsinline loop preload="none" aria-hidden="true"></video>
+              <button type="button" class="sg-sound" id="sg-sound" aria-label="Activar sonido">
+                <i class="fa-solid fa-volume-xmark"></i>
+              </button>
             </div>
 
             <div class="sg-info-page" id="sg-info-page">
@@ -196,6 +201,13 @@
           <button type="button" class="sg-scroll-arrow" id="sg-scroll-arrow" aria-label="Ver información">
             <i class="fa-solid fa-chevron-down" id="sg-scroll-arrow-icon"></i>
           </button>
+        </div>
+        <!-- captura ampliada -->
+        <div class="sg-lightbox" id="sg-lightbox" hidden>
+          <img src="" alt="Captura del juego">
+          <button type="button" class="lb-btn lb-prev" data-lb="prev" aria-label="Anterior"><i class="fa-solid fa-chevron-left"></i></button>
+          <button type="button" class="lb-btn lb-next" data-lb="next" aria-label="Siguiente"><i class="fa-solid fa-chevron-right"></i></button>
+          <button type="button" class="lb-btn lb-close" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="screen-vignette"></div>
         <div class="screen-glare"></div>
