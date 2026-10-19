@@ -141,8 +141,8 @@ const GAMES = [
     gddUrl: "docs/GDD_OverZhousands.pdf"
   },
   {
-    title:"Cooming Soon",
-    genre:"",
+    title:"Cooking Barquillos in Madrid - Cooming Soon",
+    genre:"Gestión de tiempo y Cocina",
     year:"2026",
     comingSoon: true,
     gameJam: true,
@@ -155,7 +155,7 @@ const GAMES = [
       "",
       ""
     ],
-    tags:["Unity","3D"],
+    tags:["Unity","2D","Acción Arcade","Pixel Art"],
     discColor:"#5b3800",
     accentColor:"#b56700",
     cover: "cover/",
