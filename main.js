@@ -67,7 +67,6 @@ const GAMES = [
     discModel: "models/Que_no_te_coma_el_amor.glb",
     animModel: "models/Que_no_te_coma_el_amor_anim.glb",
     playUrl: "https://axiada.itch.io/tesiscoma",
-    gddUrl: "docs/GDD_Amor.pdf"
   },
   {
     title:"Clashing Blocks",
@@ -144,11 +143,36 @@ const GAMES = [
     discColor:"#0e4500",
     accentColor:"#1fb501",
     cover: "cover/Over_cover.webp",
+    trailer: "videos/Over_trailer.mp4",
     gallery: ["galeria/over_1.webp","galeria/over_2.webp","galeria/over_3.webp","galeria/over_4.webp"],
     discModel: "models/Over_zhousands.glb",
     animModel: "models/Over_zhousands_anim.glb",
     playUrl: "https://sickgecko.itch.io/over-zhousands",
     gddUrl: "docs/GDD_OverZhousands.pdf"
+  },
+  {
+    title:"Atrapa el Barquillo - Cooming Soon",
+    genre:"Gestión de tiempo y Acción arcade",
+    year:"2026",
+    comingSoon: true,
+    gameJam: true,
+    desc:[
+      ""
+    ],
+    roleTitle:"Diseñador",
+    role:[
+      "",
+      "",
+      ""
+    ],
+    tags:["Unity","3D"],
+    discColor:"#5b3800",
+    accentColor:"#b56700",
+    cover: "cover/",
+    discModel: "models/Cooming_soon.glb",
+    animModel: "models/Cooming_soon_anim.glb",
+    playUrl: "",
+    gddUrl: "docs/"
   },
   {
     title:"Drowned Cape - Cooming Soon",
@@ -167,30 +191,6 @@ const GAMES = [
     tags:["Unity","3D","Supervivencia","Monstruos"],
     discColor:"#00275b",
     accentColor:"#0051b5",
-    cover: "cover/",
-    discModel: "models/Cooming_soon.glb",
-    animModel: "models/Cooming_soon_anim.glb",
-    playUrl: "",
-    gddUrl: "docs/"
-  },
-  {
-    title:"Cooming Soon",
-    genre:"",
-    year:"2026",
-    comingSoon: true,
-    gameJam: true,
-    desc:[
-      ""
-    ],
-    roleTitle:"Diseñador",
-    role:[
-      "",
-      "",
-      ""
-    ],
-    tags:["Unity","3D"],
-    discColor:"#5b3800",
-    accentColor:"#b56700",
     cover: "cover/",
     discModel: "models/Cooming_soon.glb",
     animModel: "models/Cooming_soon_anim.glb",
